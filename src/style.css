@@ -222,16 +222,27 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .endturn:disabled { opacity: .5; }
 
 /* ───── title / theme ───── */
-.title-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding-block: 20px; }
-.title-art { display: flex; align-items: flex-end; justify-content: center; margin-bottom: -10px; }
-.title-art svg:nth-child(2) { margin: 0 -18px; }
-.title-screen h1 {
-  font-size: 54px; letter-spacing: .06em; color: var(--lantern);
-  text-shadow: 3px 3px 0 var(--ink), -1px -1px 0 var(--ink), 1px -1px 0 var(--ink), -1px 1px 0 var(--ink), 0 0 26px rgba(255, 204, 102, .6);
+.title-screen { position: fixed; inset: 0; overflow: hidden; background: #2a1c2e; z-index: 5; }
+.title-screen::before { content: ""; position: absolute; inset: -40px; background: var(--art) center / cover; filter: blur(24px) brightness(.6); }
+/* 2:3 art, full height; on narrow phones the sides crop, on wide screens the blur fills them */
+.title-stage {
+  position: absolute; left: 50%; top: 50%; height: 100%; aspect-ratio: 2 / 3; transform: translate(-50%, -50%);
+  background: var(--art) center / 100% 100% no-repeat;
 }
-.tagline { color: var(--on-dark); margin: 0 0 10px; text-shadow: 1px 1px 0 var(--ink); }
-.menu { display: flex; flex-direction: column; gap: 10px; width: min(280px, 100%); }
-.fine { color: var(--on-dark); opacity: .7; font-size: 12px; }
+.title-stage .hot {
+  position: absolute; left: 33.2%; width: 33.8%; height: 5.9%; border-radius: 999px;
+  border: 0; padding: 0; background: transparent; cursor: pointer; transition: transform .12s, background .12s;
+}
+.title-stage .hot:hover { background: rgba(255,255,255,.14); }
+.title-stage .hot:active { transform: scale(.96); background: rgba(0,0,0,.12); }
+.title-stage .hot:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.title-stage .b1 { top: 61.9%; }
+.title-stage .b2 { top: 68.9%; }
+.title-stage .b3 { top: 75.9%; }
+.title-stage .b4 { top: 82.9%; }
+.title-stage .hot.off { background: rgba(40,30,40,.55); cursor: not-allowed; }
+.title-screen .fine { position: absolute; left: 0; right: 0; bottom: max(10px, env(safe-area-inset-bottom)); margin: 0; text-align: center; color: #fff; opacity: .8; font-size: 12px; text-shadow: 0 1px 3px #000; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .theme-tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 8px 0; }
 .theme-tab { border: 3px solid var(--ink); background: var(--paper-2); border-radius: 12px; padding: 6px 10px; display: flex; gap: 4px; align-items: center; }
 .theme-tab.on { background: var(--lantern); transform: translateY(-2px); box-shadow: 0 3px 0 var(--ink); }
@@ -336,3 +347,4 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .deck-grid .card.big .name { font-size: 14px; }
 .deck-grid .card.big .art { font-size: 26px; }
 .deck-grid .card.big .text { font-size: 12px; }
+.menu { display: flex; flex-direction: column; gap: 10px; width: min(280px, 100%); }

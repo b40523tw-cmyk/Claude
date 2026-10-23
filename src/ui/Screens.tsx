@@ -11,6 +11,7 @@ import {
 import type { CardInst, MajorTheme, RunState } from '../engine/types';
 import { CardView } from './CardView';
 import { MonsterArt } from './MonsterArt';
+import titleArt from '../assets/title.jpg';
 
 type Bump = () => void;
 
@@ -45,22 +46,17 @@ export function TopBar({ G, onDeck, onMenu }: { G: RunState; onDeck: () => void;
 export function Title({ hasSave, onNew, onContinue, onCodex, onHelp }: {
   hasSave: boolean; onNew: () => void; onContinue: () => void; onCodex: () => void; onHelp: () => void;
 }) {
+  // The buttons are painted into the title art; these sit on top of them.
   return (
-    <div class="title-screen">
-      <div class="title-art">
-        <MonsterArt id="card" size={110} />
-        <MonsterArt id="revolving" size={150} />
-        <MonsterArt id="sub" size={110} />
+    <div class="title-screen" style={{ '--art': `url(${titleArt})` } as Record<string, string | number>}>
+      <div class="title-stage">
+        <h1 class="sr-only">Long Life 長久人生</h1>
+        <button type="button" class="hot b1" aria-label="開始遊戲" onClick={onNew} />
+        <button type="button" class={`hot b2 ${hasSave ? '' : 'off'}`} aria-label="上次存檔" disabled={!hasSave} onClick={onContinue} />
+        <button type="button" class="hot b3" aria-label="圖鑑" onClick={onCodex} />
+        <button type="button" class="hot b4" aria-label="說明" onClick={onHelp} />
       </div>
-      <h1>投資肉鴿</h1>
-      <p class="tagline">用一副投資組合，撐過人生所有帳單。</p>
-      <div class="menu">
-        {hasSave && <button type="button" class="btn primary" onClick={onContinue}>繼續這一輪</button>}
-        <button type="button" class={`btn ${hasSave ? '' : 'primary'}`} onClick={onNew}>開始新的一輪</button>
-        <button type="button" class="btn" onClick={onCodex}>圖鑑</button>
-        <button type="button" class="btn" onClick={onHelp}>怎麼玩</button>
-      </div>
-      <p class="fine">v0.2 · 第 1 章「社會新鮮人」試玩版</p>
+      <p class="fine">v0.3 · 第 1 章「社會新鮮人」試玩版</p>
     </div>
   );
 }
