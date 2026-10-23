@@ -10,7 +10,7 @@ import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 // Painted backdrops: ch<chapter>-<screen>.jpg, or a shared picture listed in SHARED_BG.
 // Screens without one keep the drawn corridor.
 const backdrops = import.meta.glob('../assets/bg/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
-const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank' };
+const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop' };
 
 type View = 'title' | 'theme' | 'run' | 'codex' | 'help';
 
@@ -108,10 +108,12 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
   else if (s.name === 'gameOver') body = <EndScreen G={run} win={false} unlocked={false} onDone={backToTitle} />;
 
   const ended = s.name === 'gameOver' || s.name === 'chapterClear';
+  // A new key on each screen change replays the "walking forward" camera move.
+  const step = `${run.chapter}-${run.stage}-${run.fight}-${s.name}`;
   return (
-    <Shell ch={run.chapter} scene={s.name}>
+    <Shell ch={run.chapter} scene={s.name} step={step}>
       {!ended && <TopBar G={run} onDeck={() => setDeckOpen(true)} onMenu={() => setMenuOpen(true)} />}
-      <main class="main">{body}</main>
+      <main class="main step-in" key={step}>{body}</main>
       {deckOpen && <DeckModal G={run} onClose={() => setDeckOpen(false)} />}
       {menuOpen && (
         <Menu
@@ -124,11 +126,11 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
   );
 }
 
-function Shell({ children, ch = 1, scene = 'title' }: { children: preact.ComponentChildren; ch?: number; scene?: string }) {
+function Shell({ children, ch = 1, scene = 'title', step }: { children: preact.ComponentChildren; ch?: number; scene?: string; step?: string }) {
   const bg = backdrops[`../assets/bg/ch${ch}-${scene}.jpg`] ?? backdrops[`../assets/bg/${SHARED_BG[scene]}.jpg`];
   return (
     <div class={`shell ch${ch} sc-${scene} ${bg ? 'has-bg' : ''}`} style={bg ? ({ '--bg': `url(${bg})` } as Record<string, string | number>) : undefined}>
-      <div class="corridor" aria-hidden="true">
+      <div class={`corridor ${step ? 'walk' : ''}`} aria-hidden="true" key={step ?? scene}>
         <div class="wall left" />
         <div class="wall right" />
         <div class="floor" />

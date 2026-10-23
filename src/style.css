@@ -408,3 +408,20 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .shell.has-bg.sc-theme .corridor, .shell.has-bg.sc-reward .corridor {
   background: linear-gradient(180deg, rgba(20,12,30,.78) 0%, rgba(20,12,30,.45) 22%, rgba(20,12,30,.3) 55%, rgba(20,12,30,.5) 100%), var(--bg) center 40% / cover;
 }
+.shell.has-bg.sc-shop .corridor {
+  background: linear-gradient(180deg, rgba(20,12,30,.7) 0%, rgba(20,12,30,.25) 20%, rgba(20,12,30,.1) 50%, rgba(20,12,30,.4) 100%), var(--bg) center 40% / cover;
+}
+
+/* Screen change: the camera bobs and pushes forward a little, like taking a few steps */
+.corridor.walk { animation: walk 1s cubic-bezier(.3,.6,.4,1) both; transform-origin: 50% 45%; }
+@keyframes walk {
+  0%   { scale: 1;    translate: 0 0;     rotate: 0deg;   filter: brightness(.35) blur(2px); }
+  18%  { translate: 0 -7px;  rotate: -.7deg; }
+  38%  { translate: 0 5px;   rotate: .6deg;  filter: brightness(.8); }
+  58%  { translate: 0 -5px;  rotate: -.4deg; }
+  78%  { translate: 0 3px;   rotate: .2deg; }
+  100% { scale: 1.08; translate: 0 0;     rotate: 0deg;   filter: none; }
+}
+.step-in { animation: step-in .5s .25s ease-out both; }
+@keyframes step-in { from { opacity: 0; translate: 0 12px; } }
+@media (prefers-reduced-motion: reduce) { .corridor.walk, .step-in { animation: none; } }
