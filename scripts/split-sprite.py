@@ -42,5 +42,5 @@ for k, pose in enumerate(['idle', 'attack', 'hurt']):
     piece = im.copy(); piece.putalpha(a)
     c = piece.crop(a.point(lambda v: 255 if v > 8 else 0).getbbox())
     s = max(c.size); sq = Image.new('RGBA', (s, s), (0, 0, 0, 0)); sq.paste(c, ((s - c.width) // 2, s - c.height))
-    sq.resize((512, 512), Image.LANCZOS).save(f'src/assets/monsters/{mid}-{pose}.webp', quality=82, method=6)
+    sq.resize((400, 400), Image.LANCZOS).save(f'src/assets/monsters/{mid}-{pose}.webp', quality=80, method=6)
     print(pose, c.size)
