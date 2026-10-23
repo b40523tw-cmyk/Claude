@@ -7,8 +7,10 @@ import {
 } from './Screens';
 import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 
-// Painted backdrops, named ch<chapter>-<screen>.jpg; screens without one keep the drawn corridor.
+// Painted backdrops: ch<chapter>-<screen>.jpg, or a shared picture listed in SHARED_BG.
+// Screens without one keep the drawn corridor.
 const backdrops = import.meta.glob('../assets/bg/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
+const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank' };
 
 type View = 'title' | 'theme' | 'run' | 'codex' | 'help';
 
@@ -87,7 +89,7 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
       </Shell>
     );
   }
-  if (view === 'theme') return <Shell><ThemeSelect onPick={start} onBack={() => setView('title')} /></Shell>;
+  if (view === 'theme') return <Shell scene="theme"><ThemeSelect onPick={start} onBack={() => setView('title')} /></Shell>;
   if (view === 'codex') return <Shell><Codex meta={meta} onClose={() => setView('title')} /></Shell>;
   if (view === 'help') return <Shell><Help onClose={() => setView('title')} /></Shell>;
 
@@ -123,7 +125,7 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
 }
 
 function Shell({ children, ch = 1, scene = 'title' }: { children: preact.ComponentChildren; ch?: number; scene?: string }) {
-  const bg = backdrops[`../assets/bg/ch${ch}-${scene}.jpg`];
+  const bg = backdrops[`../assets/bg/ch${ch}-${scene}.jpg`] ?? backdrops[`../assets/bg/${SHARED_BG[scene]}.jpg`];
   return (
     <div class={`shell ch${ch} sc-${scene} ${bg ? 'has-bg' : ''}`} style={bg ? ({ '--bg': `url(${bg})` } as Record<string, string | number>) : undefined}>
       <div class="corridor" aria-hidden="true">

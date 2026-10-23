@@ -36,7 +36,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--lantern); outline-offset: 2px; }
 
 /* ───── corridor backdrop ───── */
-.shell { position: relative; height: 100%; overflow: hidden; }
+.shell { position: relative; height: 100%; overflow: hidden; overflow: clip; }
 .corridor {
   position: absolute; inset: 0;
   background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 38%, var(--street) 62%, var(--street-2) 100%);
@@ -267,7 +267,7 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .endturn:disabled { filter: grayscale(.85) brightness(.8); }
 
 /* ───── title / theme ───── */
-.title-screen { position: fixed; inset: 0; overflow: hidden; background: #2a1c2e; z-index: 5; }
+.title-screen { position: fixed; inset: 0; overflow: hidden; overflow: clip; background: #2a1c2e; z-index: 5; }
 .title-screen::before { content: ""; position: absolute; inset: -40px; background: var(--art) center / cover; filter: blur(24px) brightness(.6); }
 /* 2:3 art, full height; on narrow phones the sides crop, on wide screens the blur fills them */
 .title-stage {
@@ -404,3 +404,7 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .deck-grid .card.big .art { font-size: 26px; }
 .deck-grid .card.big .text { font-size: 12px; }
 .menu { display: flex; flex-direction: column; gap: 10px; width: min(280px, 100%); }
+/* Bright indoor backdrops (bank): dim more so headings and card text read clearly */
+.shell.has-bg.sc-theme .corridor, .shell.has-bg.sc-reward .corridor {
+  background: linear-gradient(180deg, rgba(20,12,30,.78) 0%, rgba(20,12,30,.45) 22%, rgba(20,12,30,.3) 55%, rgba(20,12,30,.5) 100%), var(--bg) center 40% / cover;
+}
