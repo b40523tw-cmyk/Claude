@@ -68,8 +68,8 @@ button:focus-visible { outline: 3px solid var(--lantern); outline-offset: 2px; }
 .frame {
   position: relative; height: 100%; max-width: 480px; margin: 0 auto;
   display: flex; flex-direction: column;
-  padding-left: max(12px, env(safe-area-inset-left, 0px));
-  padding-right: max(12px, env(safe-area-inset-right, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 .main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 

@@ -133,7 +133,7 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
     }, 250);
   }
 
-  const handW = Math.min(window.innerWidth, 480) - 24;
+  const handW = Math.min(window.innerWidth, 480) - 32;
   const cw = 82;
   const n = c.hand.length;
   const overlap = n > 1 && n * cw > handW ? (handW - cw * n) / (n - 1) : 6;
