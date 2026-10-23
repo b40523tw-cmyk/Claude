@@ -30,6 +30,7 @@ export interface Meta {
   talentPoints: number; // unspent
   talents: Record<string, number>;
   codexAwards: number; // 10% codex milestones already paid out
+  backfilled?: boolean; // talent points granted for runs played before talents existed
 }
 
 export function newMeta(): Meta {
@@ -449,6 +450,16 @@ export function resolveEvent(G: RunState, choice: number, meta: Meta) {
 
 export function relicName(id: string) {
   return RELICS[id]?.name ?? id;
+}
+
+/** Saves from before the talent tree: pay out points for past runs and the codex once. */
+export function backfillTalents(meta: Meta) {
+  if (meta.backfilled) return;
+  meta.backfilled = true;
+  if (meta.runs > 0 && !Object.keys(meta.talents ?? {}).length) {
+    meta.talentPoints = (meta.talentPoints ?? 0) + meta.clears * 8 + Math.max(0, meta.runs - meta.clears) * 3;
+  }
+  awardCodex(meta);
 }
 
 /** Codex bonus: +2 talent points for every 10% of monsters, cards and relics seen. Returns points added. */
