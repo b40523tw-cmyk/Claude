@@ -22,11 +22,11 @@ const POWER_INFO: Record<string, [string, (v: number) => string]> = {
   frenzy: ['牛市狂熱', () => '每次爆擊後，本回合爆擊率 +10%'],
   leverage: ['槓桿倍數', (v) => `所有「連擊×N」的 N +${v}`],
   income: ['穩定收入', (v) => `每回合開始獲得 ${v} 護盾`],
-  seniority: ['年資', () => '每回合開始，護盾增加 10%'],
-  ironBowl: ['鐵飯碗', (v) => `每回合開始，護盾翻倍（最多 +${v}）`],
+  seniority: ['年資', () => '每回合開始，護盾 ×2'],
+  ironBowl: ['鐵飯碗', (v) => `每回合開始獲得 ${v} 護盾，並回復存款`],
   annuity: ['年金', (v) => `每回合開始獲得 ${v} 利息`],
   compound: ['複利', () => '利息不再每回合減 1'],
-  lifeInsurance: ['壽險理賠', (v) => `第一次存款歸零時回復到 ${Math.round(v * 100)}%`],
+  lifeInsurance: ['壽險理賠', (v) => `第一次存款歸零時回復到 ${Math.round(v * 100)}%，並對所有怪物造成 20 傷害`],
 };
 
 function IntentBadge({ G, it }: { G: RunState; it: Intent }) {

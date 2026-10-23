@@ -42,7 +42,7 @@ export function startCombat(G: RunState, kind: FightKind, monsterIds: string[]) 
     st: { exposure: 0, bull: 0, combo: 0, interest: 0, debt: 0 },
     pw: {
       dividend: 0, bullMarket: 0, fomo: 0, fomoTurns: 0, frenzy: 0, leverage: 0, income: 0,
-      seniority: 0, ironBowl: 0, annuity: 0, compound: 0, lifeInsurance: 0, liquidation: 0,
+      seniority: 0, ironBowl: 0, ironBowlHeal: 0, annuity: 0, compound: 0, lifeInsurance: 0, liquidation: 0,
     },
     tf: newTurnFlags(0),
     healed: 0, firstAttackDone: false, lastTurnTookDamage: true, over: null, log: [],
@@ -87,8 +87,9 @@ export function startPlayerTurn(G: RunState) {
   const first = c.turn === 1;
 
   // Shield stacks for the whole fight; these powers grow it.
-  if (c.pw.seniority && c.block > 0) gainBlock(G, Math.max(1, Math.floor(c.block * 0.1 * c.pw.seniority)));
-  if (c.pw.ironBowl && c.block > 0) gainBlock(G, Math.min(c.block, c.pw.ironBowl));
+  if (c.pw.seniority && c.block > 0) gainBlock(G, c.block * (2 ** c.pw.seniority - 1));
+  if (c.pw.ironBowl) gainBlock(G, c.pw.ironBowl);
+  if (c.pw.ironBowlHeal) heal(G, c.pw.ironBowlHeal);
 
   c.tf = newTurnFlags(c.tf.pendingNextAttackCrit);
 
@@ -221,6 +222,7 @@ function checkDeath(G: RunState) {
     G.hp = Math.max(1, Math.round(G.maxHp * c.pw.lifeInsurance));
     c.pw.lifeInsurance = 0;
     fx(G, 'player', '壽險理賠！', 'info');
+    for (const m of alive(c)) hurtMonster(G, m, 20, false);
     return;
   }
   if (has(G, 'policy') && !G.usedOnce.policy) {
@@ -328,7 +330,7 @@ export function playCard(G: RunState, idx: number, targetUid?: string): boolean 
       isCrit = rand(G) < p;
     }
     if (isCrit) {
-      d *= c.pw.fomo ? 3 : 2;
+      d *= c.pw.fomo ? 3 : 1.5;
       x.critted = true;
     }
     d = Math.max(0, Math.round(d));

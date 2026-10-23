@@ -55,7 +55,8 @@ export interface Powers {
   leverage: number; // 槓桿倍數: +N to combo multipliers
   income: number; // 穩定收入: block per turn
   seniority: number; // 年資: +10% shield per turn per stack
-  ironBowl: number; // 鐵飯碗: shield doubles each turn, capped at this gain
+  ironBowl: number; // 鐵飯碗: shield gained each turn
+  ironBowlHeal: number; // 鐵飯碗: savings healed each turn
   annuity: number; // 年金: interest per turn
   compound: number; // 複利
   lifeInsurance: number; // 壽險理賠: heal-to fraction (0 = none / used)

@@ -82,14 +82,14 @@ const defs: CardDef[] = [
     play: (x, n) => { x.hit(n.dmg); x.st.bull += 1; },
   },
   {
-    id: 'etf', name: 'ＥＴＦ', theme: 'stock', rarity: 'common', type: 'defense', cost: [1, 1], start: true,
-    base: { block: 6 }, up: { block: 9 },
+    id: 'etf', name: 'ＥＴＦ', theme: 'stock', rarity: 'common', type: 'defense', cost: [0, 0], start: true,
+    base: { block: 6 }, up: { block: 10 },
     desc: (n) => `獲得 ${n.block} 護盾、1 多頭`,
     play: (x, n) => { x.block(n.block); x.st.bull += 1; },
   },
   {
     id: 'takeprofit', name: '停利', theme: 'stock', rarity: 'common', type: 'heal', cost: [1, 1], start: true,
-    base: { heal: 4, rm: 1 }, up: { heal: 6, rm: 2 },
+    base: { heal: 5, rm: 1 }, up: { heal: 7, rm: 2 },
     desc: (n) => `回復 ${n.heal} 存款，移除 ${n.rm} 曝險`,
     play: (x, n) => { x.heal(n.heal); x.st.exposure = Math.max(0, x.st.exposure - n.rm); },
   },
@@ -262,13 +262,13 @@ const defs: CardDef[] = [
   // ───────── 腳踏實地 ─────────
   {
     id: 'overtime', name: '加班', theme: 'work', rarity: 'common', type: 'defense', cost: [1, 1], start: true,
-    base: { block: 8 }, up: { block: 11 },
+    base: { block: 7 }, up: { block: 10 },
     desc: (n) => `獲得 ${n.block} 護盾`,
     play: (x, n) => x.block(n.block),
   },
   {
     id: 'clockin', name: '打卡上班', theme: 'work', rarity: 'common', type: 'defense', cost: [1, 1], start: true,
-    base: { block: 5 }, up: { block: 7 },
+    base: { block: 4 }, up: { block: 7 },
     desc: (n) => `獲得 ${n.block} 護盾，抽 1 張`,
     play: (x, n) => { x.block(n.block); x.draw(1); },
   },
@@ -280,7 +280,7 @@ const defs: CardDef[] = [
   },
   {
     id: 'nap', name: '午休', theme: 'work', rarity: 'common', type: 'heal', cost: [1, 1], start: true,
-    base: { heal: 4, block: 3 }, up: { heal: 6, block: 5 },
+    base: { heal: 3, block: 3 }, up: { heal: 6, block: 5 },
     desc: (n) => `回復 ${n.heal} 存款，獲得 ${n.block} 護盾`,
     play: (x, n) => { x.heal(n.heal); x.block(n.block); },
   },
@@ -305,7 +305,7 @@ const defs: CardDef[] = [
   {
     id: 'seniority', name: '年資', theme: 'work', rarity: 'epic', type: 'power', cost: [2, 1], start: false,
     base: {}, up: {},
-    desc: () => `每回合開始，護盾增加 10%（至少 +1）`,
+    desc: () => `每回合開始，護盾 ×2`,
     play: (x) => { x.pw.seniority += 1; },
   },
   {
@@ -316,9 +316,9 @@ const defs: CardDef[] = [
   },
   {
     id: 'ironbowl', name: '鐵飯碗', theme: 'work', rarity: 'legendary', type: 'power', cost: [3, 3], start: false,
-    base: { cap: 20 }, up: { cap: 30 },
-    desc: (n) => `每回合開始，護盾翻倍（每回合最多 +${n.cap}）`,
-    play: (x, n) => { x.pw.ironBowl = Math.max(x.pw.ironBowl, n.cap); },
+    base: { block: 5, heal: 3 }, up: { block: 8, heal: 5 },
+    desc: (n) => `每回合開始獲得 ${n.block} 護盾，回復 ${n.heal} 存款`,
+    play: (x, n) => { x.pw.ironBowl += n.block; x.pw.ironBowlHeal = (x.pw.ironBowlHeal ?? 0) + n.heal; },
   },
 
   // ───────── 保守型 ─────────
@@ -330,9 +330,9 @@ const defs: CardDef[] = [
   },
   {
     id: 'savingsins', name: '儲蓄險', theme: 'safe', rarity: 'common', type: 'heal', cost: [1, 1], start: true,
-    base: { heal: 5 }, up: { heal: 8 },
-    desc: (n) => `回復 ${n.heal} 存款`,
-    play: (x, n) => x.heal(n.heal),
+    base: { heal: 6 }, up: { heal: 9 }, target: true,
+    desc: (n) => `回復 ${n.heal} 存款，造成 1 傷害`,
+    play: (x, n) => { x.heal(n.heal); x.hit(1); },
   },
   {
     id: 'gold', name: '黃金避險', theme: 'safe', rarity: 'common', type: 'defense', cost: [1, 1], start: true,
@@ -379,7 +379,7 @@ const defs: CardDef[] = [
   {
     id: 'lifeins', name: '壽險理賠', theme: 'safe', rarity: 'legendary', type: 'power', cost: [2, 2], start: false,
     base: { to: 0.3 }, up: { to: 0.5 },
-    desc: (n) => `本場戰鬥第一次存款歸零時，改為回復到 ${pct(n.to)}`,
+    desc: (n) => `本場戰鬥第一次存款歸零時，改為回復到 ${pct(n.to)}，並對所有怪物造成 20 傷害`,
     play: (x, n) => { x.pw.lifeInsurance = Math.max(x.pw.lifeInsurance, n.to); },
   },
 ];
