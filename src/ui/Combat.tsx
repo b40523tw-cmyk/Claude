@@ -7,7 +7,7 @@ import { CardView } from './CardView';
 import { MonsterArt } from './MonsterArt';
 
 const STATUS_INFO: Record<string, [string, string]> = {
-  block: ['護盾', '先擋傷害。回合開始時清空。'],
+  block: ['護盾', '先擋傷害。同一場戰鬥會一直累積，戰鬥結束清除。'],
   exposure: ['曝險', '每層使你受到的傷害 +10%，戰鬥結束清除。'],
   bull: ['多頭', '每層使下一張攻擊牌 +3 傷害，打出後消耗。'],
   combo: ['連擊', '本回合累積的數字，回合結束歸零。'],
@@ -22,8 +22,8 @@ const POWER_INFO: Record<string, [string, (v: number) => string]> = {
   frenzy: ['牛市狂熱', () => '每次爆擊後，本回合爆擊率 +10%'],
   leverage: ['槓桿倍數', (v) => `所有「連擊×N」的 N +${v}`],
   income: ['穩定收入', (v) => `每回合開始獲得 ${v} 護盾`],
-  seniority: ['年資', () => '回合開始只清空一半護盾'],
-  ironBowl: ['鐵飯碗', (v) => `護盾不清空，每回合失去 ${v}`],
+  seniority: ['年資', () => '每回合開始，護盾增加 10%'],
+  ironBowl: ['鐵飯碗', (v) => `每回合開始，護盾翻倍（最多 +${v}）`],
   annuity: ['年金', (v) => `每回合開始獲得 ${v} 利息`],
   compound: ['複利', () => '利息不再每回合減 1'],
   lifeInsurance: ['壽險理賠', (v) => `第一次存款歸零時回復到 ${Math.round(v * 100)}%`],

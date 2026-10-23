@@ -86,10 +86,9 @@ export function startPlayerTurn(G: RunState) {
   c.turn++;
   const first = c.turn === 1;
 
-  // Shield decay
-  if (c.pw.ironBowl) c.block = Math.max(0, c.block - c.pw.ironBowl);
-  else if (c.pw.seniority) c.block = Math.floor(c.block / 2);
-  else c.block = 0;
+  // Shield stacks for the whole fight; these powers grow it.
+  if (c.pw.seniority && c.block > 0) gainBlock(G, Math.max(1, Math.floor(c.block * 0.1 * c.pw.seniority)));
+  if (c.pw.ironBowl && c.block > 0) gainBlock(G, Math.min(c.block, c.pw.ironBowl));
 
   c.tf = newTurnFlags(c.tf.pendingNextAttackCrit);
 

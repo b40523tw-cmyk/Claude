@@ -54,8 +54,8 @@ export interface Powers {
   frenzy: number; // 牛市狂熱: +crit per crit this turn
   leverage: number; // 槓桿倍數: +N to combo multipliers
   income: number; // 穩定收入: block per turn
-  seniority: number; // 年資
-  ironBowl: number; // 鐵飯碗: block lost per turn (0 = inactive)
+  seniority: number; // 年資: +10% shield per turn per stack
+  ironBowl: number; // 鐵飯碗: shield doubles each turn, capped at this gain
   annuity: number; // 年金: interest per turn
   compound: number; // 複利
   lifeInsurance: number; // 壽險理賠: heal-to fraction (0 = none / used)

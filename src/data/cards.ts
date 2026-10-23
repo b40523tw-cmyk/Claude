@@ -305,8 +305,8 @@ const defs: CardDef[] = [
   {
     id: 'seniority', name: '年資', theme: 'work', rarity: 'epic', type: 'power', cost: [2, 1], start: false,
     base: {}, up: {},
-    desc: () => `回合開始只清空一半護盾`,
-    play: (x) => { x.pw.seniority = 1; },
+    desc: () => `每回合開始，護盾增加 10%（至少 +1）`,
+    play: (x) => { x.pw.seniority += 1; },
   },
   {
     id: 'slash', name: '斜槓人生', theme: 'work', rarity: 'epic', type: 'combo', cost: [1, 1], start: false,
@@ -316,9 +316,9 @@ const defs: CardDef[] = [
   },
   {
     id: 'ironbowl', name: '鐵飯碗', theme: 'work', rarity: 'legendary', type: 'power', cost: [3, 3], start: false,
-    base: { lose: 5 }, up: { lose: 2 },
-    desc: (n) => `護盾不再於回合開始清空，改為每回合失去 ${n.lose} 護盾`,
-    play: (x, n) => { x.pw.ironBowl = x.pw.ironBowl ? Math.min(x.pw.ironBowl, n.lose) : n.lose; },
+    base: { cap: 20 }, up: { cap: 30 },
+    desc: (n) => `每回合開始，護盾翻倍（每回合最多 +${n.cap}）`,
+    play: (x, n) => { x.pw.ironBowl = Math.max(x.pw.ironBowl, n.cap); },
   },
 
   // ───────── 保守型 ─────────
