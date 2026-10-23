@@ -50,7 +50,7 @@ export function Title({ hasSave, onNew, onContinue, onCodex, onHelp }: {
   return (
     <div class="title-screen" style={{ '--art': `url(${titleArt})` } as Record<string, string | number>}>
       <div class="title-stage">
-        <h1 class="sr-only">Long Life 長久人生</h1>
+        <h1 class="sr-only">Long Life</h1>
         <button type="button" class="hot b1" aria-label="開始遊戲" onClick={onNew} />
         <button type="button" class={`hot b2 ${hasSave ? '' : 'off'}`} aria-label="上次存檔" disabled={!hasSave} onClick={onContinue} />
         <button type="button" class="hot b3" aria-label="圖鑑" onClick={onCodex} />
