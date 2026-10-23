@@ -3,6 +3,7 @@ import { MONSTERS } from '../data/monsters';
 import { pick, rand, shuffle } from './rng';
 import type { CardInst, CombatState, FightKind, MonsterState, RunState } from './types';
 
+/** Each turn the hand refills up to this many cards; unplayed cards stay. */
 const HAND_DRAW = 5;
 const BASE_ENERGY = 3;
 const HAND_MAX = 10;
@@ -113,7 +114,8 @@ export function startPlayerTurn(G: RunState) {
   if (c.pw.dividend) randomHit(G, c.pw.dividend);
   if (c.over) return;
 
-  let n = HAND_DRAW;
+  for (const h of c.hand) h.costMod = 0;
+  let n = Math.max(0, HAND_DRAW - c.hand.length);
   if (first && has(G, 'notebook')) n += 2;
   if (first && has(G, 'trial')) n += 2;
   drawCards(G, n);
@@ -373,8 +375,6 @@ export function endTurn(G: RunState) {
   if (c.over) return;
 
   if (has(G, 'tenure') && c.energy > 0) gainBlock(G, c.energy * 5);
-  for (const h of c.hand) c.discard.push(stripHand(h));
-  c.hand = [];
 
   if (c.pw.liquidation && c.st.combo > c.pw.liquidation) {
     loseHp(G, has(G, 'stoporder') ? 5 : 10, '斷頭');
