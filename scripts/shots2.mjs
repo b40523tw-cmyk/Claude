@@ -11,7 +11,7 @@ for (const [name, st] of Object.entries(states)) {
   await p.goto('file://' + process.cwd() + '/dist/index.html');
   await p.evaluate((s) => localStorage.setItem('tzrg.run.v1', JSON.stringify(s)), st);
   await p.reload();
-  await p.getByText('繼續這一輪').click();
+  await p.getByText('上次存檔').click();
   await p.waitForTimeout(500);
   if (name === 'shop') { await p.screenshot({ path: `${out}/s-shop.png` }); await p.getByText(/^融合/).click(); await p.waitForTimeout(200); await p.screenshot({ path: `${out}/s-fuse.png` }); }
   else await p.screenshot({ path: `${out}/s-${name}.png` });

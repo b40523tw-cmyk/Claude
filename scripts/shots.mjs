@@ -10,7 +10,7 @@ p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
 await p.goto('file://' + process.cwd() + '/dist/index.html');
 await p.waitForTimeout(1200);
 await p.screenshot({ path: `${out}/1-title.png` });
-await p.getByText('開始新的一輪').click();
+await p.getByText('開始遊戲').click();
 await p.getByText('虛擬貨幣').click();
 await p.screenshot({ path: `${out}/2-theme.png` });
 await p.getByText(/出發/).click();
