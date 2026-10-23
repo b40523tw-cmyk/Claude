@@ -454,3 +454,4 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .tray .php .hp-text { line-height: 28px; font-size: 15px; }
 .tray .endturn { grid-area: end; margin-left: 0; padding: 10px 16px; }
 .tray .player-floats { top: -36px; bottom: auto; }
+.tray { margin-left: -10px; margin-right: 10px; }
