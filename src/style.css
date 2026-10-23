@@ -57,7 +57,14 @@ button:focus-visible { outline: 3px solid var(--lantern); outline-offset: 2px; }
   animation: sway 4s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -.6s);
 }
 /* painted backdrop: shade the top bar and hand areas so text stays readable */
-.shell.has-bg .corridor { background: linear-gradient(180deg, rgba(20,12,30,.45) 0%, rgba(20,12,30,0) 14%, rgba(20,12,30,0) 48%, rgba(20,12,30,.55) 72%, rgba(20,12,30,.8) 100%), var(--bg) center 70% / cover; }
+/* Same framing as the title screen: a 2:3 phone-shaped column at full height, blurred copy filling the sides */
+.shell.has-bg { background: #2a1c2e; }
+.shell.has-bg::before { content: ""; position: absolute; inset: -40px; background: var(--bg) center / cover; filter: blur(24px) brightness(.55); }
+.shell.has-bg .corridor {
+  left: 50%; right: auto; width: min(100%, calc(100dvh * 2 / 3)); transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(20,12,30,.45) 0%, rgba(20,12,30,0) 14%, rgba(20,12,30,0) 48%, rgba(20,12,30,.55) 72%, rgba(20,12,30,.8) 100%), var(--bg) center 70% / cover;
+}
+.shell.has-bg .frame { max-width: min(480px, calc(100dvh * 2 / 3)); }
 .shell.has-bg .corridor > * { display: none; }
 @keyframes sway { to { transform: translateY(calc(sin(var(--i) * 1.1rad) * 10px)) rotate(6deg); } }
 
