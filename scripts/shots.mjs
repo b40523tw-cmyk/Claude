@@ -36,7 +36,6 @@ await p.waitForTimeout(1200);
 await p.screenshot({ path: `${out}/6-reward.png` });
 if (await p.locator('.reward').count()) {
   await p.locator('.reward .card').first().click();
-  await p.getByText('繼續往前走').click();
   await p.waitForTimeout(300);
   await p.screenshot({ path: `${out}/7-paths.png` });
   await p.locator('.door').first().click();

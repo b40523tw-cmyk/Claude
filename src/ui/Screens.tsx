@@ -126,7 +126,7 @@ export function Reward({ G, meta, bump }: { G: RunState; meta: Meta; bump: Bump 
       <div class="screen">
         <h2>牌組滿了（{G.deck.length}/{G.deckCap}）</h2>
         <p class="sub">選一張移除，換成「{CARDS[replacing.id].name}」。</p>
-        <DeckGrid deck={G.deck} onPick={(c) => { takeRewardCard(G, replacing, c.uid); setReplacing(null); bump(); }} />
+        <DeckGrid deck={G.deck} onPick={(c) => { takeRewardCard(G, replacing, c.uid); setReplacing(null); leaveReward(G, meta); bump(); }} />
         <div class="actions"><button type="button" class="btn" onClick={() => setReplacing(null)}>算了</button></div>
       </div>
     );
@@ -143,15 +143,15 @@ export function Reward({ G, meta, bump }: { G: RunState; meta: Meta; bump: Bump 
             {s.cards.map((c) => (
               <CardView key={c.uid} card={c} size="big" onClick={() => {
                 if (full) setReplacing(c);
-                else { takeRewardCard(G, c); bump(); }
+                else { takeRewardCard(G, c); leaveReward(G, meta); bump(); }
               }} />
             ))}
           </div>
           <div class="actions">
-            <button type="button" class="btn heal" onClick={() => { takeRewardHeal(G); bump(); }}>
+            <button type="button" class="btn heal" onClick={() => { takeRewardHeal(G); leaveReward(G, meta); bump(); }}>
               回復 {Math.min(healAmount(G), G.maxHp - G.hp)} 存款
             </button>
-            <button type="button" class="btn ghost" onClick={() => { skipReward(G); bump(); }}>都不要</button>
+            <button type="button" class="btn ghost" onClick={() => { skipReward(G); leaveReward(G, meta); bump(); }}>都不要</button>
           </div>
         </>
       ) : (
