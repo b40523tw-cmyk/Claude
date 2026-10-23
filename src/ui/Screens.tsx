@@ -12,7 +12,7 @@ import type { CardInst, MajorTheme, RunState } from '../engine/types';
 import { CardView } from './CardView';
 import { MonsterArt } from './MonsterArt';
 import titleArt from '../assets/title.jpg';
-import { PATHS, TALENTS, spentPoints, talentCost, talentOpen, type TalentDef } from '../data/talents';
+import { PATHS, TALENT, TALENTS, spentPoints, talentCost, talentOpen, type TalentPath } from '../data/talents';
 
 type Bump = () => void;
 
@@ -494,50 +494,103 @@ export function Codex({ meta, onClose }: { meta: Meta; onClose: () => void }) {
 
 // ───────────── talents ─────────────
 
+// Tree layout in a 360×560 box: a hub in the middle, one core per path (up, right, down, left),
+// and each path's talents winding outward like a pinwheel.
+const TREE_W = 360;
+const TREE_H = 560;
+const HUB = { x: 180, y: 280 };
+const CORES: Record<TalentPath, { x: number; y: number }> = {
+  risk: { x: 180, y: 200 }, income: { x: 285, y: 280 }, frugal: { x: 180, y: 360 }, compound: { x: 75, y: 280 },
+};
+const NODE_POS: Record<string, { x: number; y: number }> = {
+  emergencyFund: { x: 180, y: 135 }, stopLoss: { x: 240, y: 85 }, insurance: { x: 300, y: 35 },
+  sideIncome: { x: 300, y: 345 }, multiIncome: { x: 300, y: 405 }, circle: { x: 300, y: 465 }, allocation: { x: 245, y: 525 },
+  compare: { x: 180, y: 425 }, declutter: { x: 120, y: 475 }, homework: { x: 60, y: 525 },
+  interest: { x: 60, y: 215 }, discipline: { x: 60, y: 155 }, reinvest: { x: 60, y: 95 }, freedom: { x: 115, y: 35 },
+};
+const pct = (p: { x: number; y: number }) => ({ left: `${(p.x / TREE_W) * 100}%`, top: `${(p.y / TREE_H) * 100}%` });
+
 export function Talents({ meta, save, onClose }: { meta: Meta; save: () => void; onClose: () => void }) {
-  const lv = meta.talents;
-  const buy = (t: TalentDef) => {
-    const have = lv[t.id] ?? 0;
-    const cost = talentCost(t, have);
-    if (have >= t.max || !talentOpen(t, lv) || meta.talentPoints < cost) return;
-    meta.talentPoints -= cost;
-    lv[t.id] = have + 1;
+  // Edits are a draft until 確定.
+  const [lv, setLv] = useState<Record<string, number>>(() => ({ ...meta.talents }));
+  const [pts, setPts] = useState(meta.talentPoints);
+  const [sel, setSel] = useState<string | null>(null);
+  const t = sel ? TALENT[sel] : null;
+  const have = t ? lv[t.id] ?? 0 : 0;
+  const cost = t ? talentCost(t, have) : 0;
+  const canAdd = !!t && have < t.max && talentOpen(t, lv) && pts >= cost;
+  // Only this visit's points can be taken back one by one; 重置 refunds everything.
+  const canSub = !!t && have > (meta.talents[t.id] ?? 0);
+
+  const add = () => { if (!t || !canAdd) return; setPts(pts - cost); setLv({ ...lv, [t.id]: have + 1 }); };
+  const sub = () => { if (!t || !canSub) return; setPts(pts + talentCost(t, have - 1)); setLv({ ...lv, [t.id]: have - 1 }); };
+  const reset = () => { setPts(pts + spentPoints(lv)); setLv({}); };
+  const confirm = () => {
+    meta.talentPoints = pts;
+    meta.talents = { ...lv };
     save();
+    onClose();
   };
-  const reset = () => {
-    meta.talentPoints += spentPoints(lv);
-    for (const k of Object.keys(lv)) delete lv[k];
-    save();
-  };
+
+  const lines: preact.JSX.Element[] = [];
+  for (const p of PATHS) {
+    const chain = [HUB, CORES[p.id], ...TALENTS.filter((x) => x.path === p.id).map((x) => NODE_POS[x.id])];
+    const nodes = TALENTS.filter((x) => x.path === p.id);
+    for (let i = 1; i < chain.length; i++) {
+      // A link lights up once the node it leads to is open.
+      const lit = i < 2 || talentOpen(nodes[i - 2], lv);
+      lines.push(<line key={`${p.id}${i}`} x1={chain[i - 1].x} y1={chain[i - 1].y} x2={chain[i].x} y2={chain[i].y} class={`tl tl-${p.id} ${lit ? 'lit' : ''}`} />);
+    }
+  }
+
   return (
     <div class="screen talents">
-      <h2>天賦</h2>
-      <p class="sub">可用天賦點 <b class="tp">{meta.talentPoints}</b>　同一條路線要點滿前一個才能點下一個。</p>
-      <div class="talent-paths">
+      <div class="talent-head">
+        <h2>天賦</h2>
+        <button type="button" class="btn small" disabled={!spentPoints(lv)} onClick={reset}>重置</button>
+      </div>
+      <div class="tree" style={{ aspectRatio: `${TREE_W} / ${TREE_H}` }}>
+        <svg viewBox={`0 0 ${TREE_W} ${TREE_H}`} aria-hidden="true">{lines}</svg>
+        <div class="hub" style={pct(HUB)}><b>{pts}</b><small>天賦點</small></div>
         {PATHS.map((p) => (
-          <section key={p.id} class={`tpath tp-${p.id}`}>
-            <h3>{p.name}<small>{p.blurb}</small></h3>
-            {TALENTS.filter((t) => t.path === p.id).map((t) => {
-              const have = lv[t.id] ?? 0;
-              const maxed = have >= t.max;
-              const open = talentOpen(t, lv);
-              const cost = talentCost(t, have);
-              const afford = meta.talentPoints >= cost;
-              return (
-                <button type="button" key={t.id} class={`tnode ${maxed ? 'maxed' : ''} ${open ? '' : 'locked'} ${t.ultimate ? 'ult' : ''}`}
-                  disabled={maxed || !open || !afford} onClick={() => buy(t)}>
-                  <span class="tn-head"><b>{t.name}</b><span class="tn-lv">{have}/{t.max}</span></span>
-                  <span class="tn-desc">{t.desc(maxed ? have : have + 1)}</span>
-                  <span class="tn-cost">{maxed ? '已點滿' : !open ? '🔒 先點滿上一個' : `${cost} 點`}</span>
-                </button>
-              );
-            })}
-          </section>
+          <div key={p.id} class={`core tp-${p.id}`} style={pct(CORES[p.id])}>{p.name}</div>
         ))}
+        {TALENTS.map((x) => {
+          const l = lv[x.id] ?? 0;
+          const open = talentOpen(x, lv);
+          const state = l >= x.max ? 'maxed' : l > 0 ? 'some' : open ? 'open' : 'locked';
+          return (
+            <button type="button" key={x.id} class={`tnode tp-${x.path} ${state} ${x.ultimate ? 'ult' : ''} ${sel === x.id ? 'sel' : ''}`}
+              style={{ ...pct(NODE_POS[x.id]), '--fill': `${(l / x.max) * 100}%` } as Record<string, string>}
+              aria-label={`${x.name} ${l}/${x.max}`} onClick={() => setSel(x.id)}>
+              {x.name}
+            </button>
+          );
+        })}
+      </div>
+      <div class="tinfo">
+        {t ? (
+          <>
+            <div class="ti-head">
+              <b>{t.name}</b><span class="ti-lv">等級 {have}/{t.max}{t.ultimate ? '　終極' : ''}</span>
+            </div>
+            <p>{have > 0 ? `目前：${t.desc(have)}` : t.desc(1)}</p>
+            {have > 0 && have < t.max && <p class="ti-next">下一級：{t.desc(have + 1)}</p>}
+            <div class="ti-act">
+              <span class="ti-cost">
+                {have >= t.max ? '已點滿' : !talentOpen(t, lv) ? '🔒 先點滿同路線前一個天賦' : `升級需要 ${cost} 點`}
+              </span>
+              <button type="button" class="btn small" disabled={!canSub} onClick={sub}>−</button>
+              <button type="button" class="btn small primary" disabled={!canAdd} onClick={add}>＋</button>
+            </div>
+          </>
+        ) : (
+          <p class="ti-hint">點一個天賦看說明。打贏戰鬥、收集圖鑑可以拿天賦點。</p>
+        )}
       </div>
       <div class="actions">
-        <button type="button" class="btn" disabled={!spentPoints(lv)} onClick={reset}>重置（免費）</button>
-        <button type="button" class="btn primary" onClick={onClose}>完成</button>
+        <button type="button" class="btn" onClick={onClose}>取消</button>
+        <button type="button" class="btn primary" onClick={confirm}>確定</button>
       </div>
     </div>
   );
