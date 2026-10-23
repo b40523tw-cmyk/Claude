@@ -2,7 +2,7 @@ import { ALL_CARDS, CARDS, canFuse, type CardDef } from '../data/cards';
 import { MONSTERS, monstersOf } from '../data/monsters';
 import { ALL_RELICS, RELICS } from '../data/relics';
 import { EVENTS } from '../data/events';
-import { FIGHT_POINTS } from '../data/talents';
+import { FIGHT_EXP, expToNext } from '../data/talents';
 import { startCombat } from './combat';
 import { chance, pick, rand, randInt, shuffle, weighted } from './rng';
 import { tl, type CardInst, type FightKind, type MajorTheme, type NodeKind, type PathOption, type Rarity, type RunState } from './types';
@@ -29,12 +29,13 @@ export interface Meta {
   clears: number;
   talentPoints: number; // unspent
   talents: Record<string, number>;
-  codexAwards: number; // 10% codex milestones already paid out
-  backfilled?: boolean; // talent points granted for runs played before talents existed
+  level: number;
+  exp: number; // toward the next level
+  leveled?: boolean; // migrated to the level system
 }
 
 export function newMeta(): Meta {
-  return { unlockedThemes: [], seenMonsters: [], beatenMonsters: [], seenCards: [], seenRelics: [], runs: 0, clears: 0, talentPoints: 0, talents: {}, codexAwards: 0 };
+  return { unlockedThemes: [], seenMonsters: [], beatenMonsters: [], seenCards: [], seenRelics: [], runs: 0, clears: 0, talentPoints: 0, talents: {}, level: 1, exp: 0 };
 }
 
 export function newRun(major: MajorTheme, seed = Math.floor(Math.random() * 2 ** 31), talents: Record<string, number> = {}, minor?: MajorTheme): RunState {
@@ -202,12 +203,12 @@ export function finishCombat(G: RunState, meta: Meta) {
   const interest = Math.floor(G.gold * 0.05 * tl(G, 'interest'));
   G.gold += interest;
 
-  const pts = FIGHT_POINTS[kind];
-  meta.talentPoints = (meta.talentPoints ?? 0) + pts;
-  G.pointsEarned = (G.pointsEarned ?? 0) + pts;
+  const exp = FIGHT_EXP[kind];
+  G.expEarned = (G.expEarned ?? 0) + exp;
+  G.pointsEarned = (G.pointsEarned ?? 0) + gainExp(meta, exp);
 
   G.screen = {
-    name: 'reward', gold: gold + interest, cards: rollCards(G, RARITY_TABLE[kind], tl(G, 'reinvest') ? 4 : 3, meta), picked: false,
+    name: 'reward', gold: gold + interest, exp, cards: rollCards(G, RARITY_TABLE[kind], tl(G, 'reinvest') ? 4 : 3, meta), picked: false,
     relicDrop: kind === 'boss',
   };
 }
@@ -452,23 +453,21 @@ export function relicName(id: string) {
   return RELICS[id]?.name ?? id;
 }
 
-/** Saves from before the talent tree: pay out points for past runs and the codex once. */
-export function backfillTalents(meta: Meta) {
-  if (meta.backfilled) return;
-  meta.backfilled = true;
-  if (meta.runs > 0 && !Object.keys(meta.talents ?? {}).length) {
-    meta.talentPoints = (meta.talentPoints ?? 0) + meta.clears * 8 + Math.max(0, meta.runs - meta.clears) * 3;
+/** Add EXP to the player level; every level up is 1 talent point. Returns levels gained. */
+export function gainExp(meta: Meta, exp: number): number {
+  meta.exp += exp;
+  let ups = 0;
+  while (meta.exp >= expToNext(meta.level)) {
+    meta.exp -= expToNext(meta.level);
+    meta.level++;
+    ups++;
   }
-  awardCodex(meta);
+  meta.talentPoints += ups;
+  return ups;
 }
 
-/** Codex bonus: +2 talent points for every 10% of monsters, cards and relics seen. Returns points added. */
-export function awardCodex(meta: Meta): number {
-  const total = Object.keys(MONSTERS).length + ALL_CARDS.filter((d) => d.theme !== 'neutral').length + ALL_RELICS.length;
-  const seen = meta.seenMonsters.length + meta.seenCards.length + meta.seenRelics.length;
-  const steps = Math.min(10, Math.floor((seen / total) * 10));
-  const fresh = Math.max(0, steps - (meta.codexAwards ?? 0));
-  meta.codexAwards = Math.max(meta.codexAwards ?? 0, steps);
-  meta.talentPoints = (meta.talentPoints ?? 0) + fresh * 2;
-  return fresh * 2;
+/** Saves from the per-fight-points version: start over at level 1 with nothing spent. */
+export function migrateLevels(meta: Meta) {
+  if (meta.leveled) return;
+  Object.assign(meta, { leveled: true, level: 1, exp: 0, talentPoints: 0, talents: {} });
 }

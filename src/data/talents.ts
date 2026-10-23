@@ -1,7 +1,8 @@
 /**
  * Talent tree (design doc, 主頁 › 天賦系統). Four paths named after money habits;
  * within a path each talent must be maxed before the next one opens.
- * Points: +1 per normal/elite fight won, +2 mini boss, +3 boss, +2 per 10% of the codex.
+ * Points come only from player levels: +1 per level up. EXP per fight won is FIGHT_EXP;
+ * the curve (100, 110, 130, 160, 200…) puts a clean chapter 1 clear at about level 5.
  * Resetting is free.
  */
 export type TalentPath = 'risk' | 'income' | 'frugal' | 'compound';
@@ -62,4 +63,9 @@ export function spentPoints(levels: Record<string, number>): number {
   return n;
 }
 
-export const FIGHT_POINTS = { normal: 1, elite: 1, miniboss: 2, boss: 3 } as const;
+export const FIGHT_EXP = { normal: 70, elite: 100, miniboss: 120, boss: 200 } as const;
+
+/** EXP needed to go from `level` to the next: 100, 110, 130, 160, 200, 250… */
+export function expToNext(level: number): number {
+  return 100 + 5 * (level - 1) * level;
+}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { awardCodex, finishCombat, newRun, setShopMeta, type Meta } from '../engine/run';
+import { finishCombat, newRun, setShopMeta, type Meta } from '../engine/run';
 import type { MajorTheme, RunState } from '../engine/types';
 import { Combat } from './Combat';
 import {
@@ -64,15 +64,6 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
     setG(null);
     setView('title');
   }
-
-  // Run over: pay out codex milestones once.
-  useEffect(() => {
-    if (!G || (G.screen.name !== 'gameOver' && G.screen.name !== 'chapterClear') || G.usedOnce.codexPaid) return;
-    G.usedOnce.codexPaid = true;
-    G.pointsEarned = (G.pointsEarned ?? 0) + awardCodex(meta);
-    saveMeta(meta);
-    setTick((t) => t + 1);
-  }, [G?.screen.name]);
 
   // Chapter clear: unlock the theme's achievement cards once.
   useEffect(() => {

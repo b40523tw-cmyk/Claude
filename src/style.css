@@ -488,10 +488,11 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .tl-risk.lit { stroke: #e2694c; } .tl-income.lit { stroke: #e3b23c; } .tl-frugal.lit { stroke: #4fae7c; } .tl-compound.lit { stroke: #9a72d6; }
 .hub, .core, .tnode { position: absolute; transform: translate(-50%, -50%); }
 .hub {
-  width: 70px; height: 70px; border-radius: 50%; border: 4px solid var(--ink); background: #f7c948;
+  width: 78px; height: 78px; border-radius: 50%; border: 4px solid var(--ink); background: #f7c948;
   display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 0 var(--ink);
 }
-.hub b { font-size: 24px; line-height: 1; }
+.hub b { font-size: 22px; line-height: 1; }
+.hub small:first-child { font-size: 10px; }
 .hub small { font-size: 11px; font-weight: bold; }
 .core {
   padding: 6px 12px; border-radius: 12px; border: 3px solid var(--ink); color: #fff; font-weight: bold; font-size: 15px;
@@ -520,3 +521,5 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .ti-lv, .ti-next, .ti-hint { color: var(--ink-soft); font-size: 13px; }
 .ti-act { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .ti-cost { flex: 1; font-size: 13px; font-weight: bold; color: #2f7a52; }
+.expbar { height: 10px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; overflow: hidden; margin: 4px 0; }
+.expbar span { display: block; height: 100%; background: #f7c948; }

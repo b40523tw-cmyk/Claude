@@ -114,7 +114,7 @@ export interface PathOption {
 export type Screen =
   | { name: 'paths'; options: PathOption[] }
   | { name: 'combat' }
-  | { name: 'reward'; gold: number; cards: CardInst[]; picked: boolean; relicDrop: boolean }
+  | { name: 'reward'; gold: number; exp?: number; cards: CardInst[]; picked: boolean; relicDrop: boolean }
   | { name: 'shop'; stock: { card: CardInst; price: number; sold: boolean }[]; then: 'fight' }
   | { name: 'event'; eventId: string; resolved: string | null }
   | { name: 'relic'; options: string[] }
@@ -157,5 +157,6 @@ export interface RunState {
   seen: string[]; // monsters seen this run, for the codex
   talents?: Record<string, number>; // talent levels locked in when the run started
   minor?: MajorTheme; // 副修 (資產配置 talent)
-  pointsEarned?: number; // talent points earned this run
+  pointsEarned?: number; // talent points (level ups) earned this run
+  expEarned?: number;
 }

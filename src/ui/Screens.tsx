@@ -12,7 +12,7 @@ import type { CardInst, MajorTheme, RunState } from '../engine/types';
 import { CardView } from './CardView';
 import { MonsterArt } from './MonsterArt';
 import titleArt from '../assets/title.jpg';
-import { PATHS, TALENT, TALENTS, spentPoints, talentCost, talentOpen, type TalentPath } from '../data/talents';
+import { PATHS, TALENT, TALENTS, expToNext, spentPoints, talentCost, talentOpen, type TalentPath } from '../data/talents';
 
 type Bump = () => void;
 
@@ -178,7 +178,7 @@ export function Reward({ G, meta, bump }: { G: RunState; meta: Meta; bump: Bump 
   return (
     <div class="screen reward">
       <h2>撐過去了</h2>
-      <p class="sub">獲得 🪙 {s.gold} 金幣</p>
+      <p class="sub">獲得 🪙 {s.gold} 金幣{s.exp ? `　✨ ${s.exp} EXP` : ''}</p>
       {!s.picked ? (
         <>
           <p class="choose-label">二選一：拿一張卡，或回復存款</p>
@@ -382,7 +382,7 @@ export function EndScreen({ G, win, unlocked, onDone }: { G: RunState; win: bool
         <div><dt>總傷害</dt><dd>{G.stats.damage}</dd></div>
         <div><dt>打出卡牌</dt><dd>{G.stats.cardsPlayed} 張</dd></div>
       </dl>
-      {!!G.pointsEarned && <p class="unlock">獲得 {G.pointsEarned} 天賦點，回標題畫面的「天賦」使用。</p>}
+      {!!G.expEarned && <p class="unlock">獲得 {G.expEarned} EXP{G.pointsEarned ? `，升了 ${G.pointsEarned} 級、拿到 ${G.pointsEarned} 天賦點，回標題畫面的「天賦」使用` : ''}。</p>}
       {unlocked && <p class="unlock">解鎖了「{THEMES[G.major].name}」的 4 張進階卡，之後的候選卡會出現它們。</p>}
       {win && <p class="sub">第 2 章「成家立業」還在施工中。</p>}
       <div class="actions"><button type="button" class="btn primary" onClick={onDone}>回到標題</button></div>
@@ -551,7 +551,7 @@ export function Talents({ meta, save, onClose }: { meta: Meta; save: () => void;
       </div>
       <div class="tree" style={{ aspectRatio: `${TREE_W} / ${TREE_H}` }}>
         <svg viewBox={`0 0 ${TREE_W} ${TREE_H}`} aria-hidden="true">{lines}</svg>
-        <div class="hub" style={pct(HUB)}><b>{pts}</b><small>天賦點</small></div>
+        <div class="hub" style={pct(HUB)}><small>Lv {meta.level}</small><b>{pts}</b><small>天賦點</small></div>
         {PATHS.map((p) => (
           <div key={p.id} class={`core tp-${p.id}`} style={pct(CORES[p.id])}>{p.name}</div>
         ))}
@@ -585,7 +585,11 @@ export function Talents({ meta, save, onClose }: { meta: Meta; save: () => void;
             </div>
           </>
         ) : (
-          <p class="ti-hint">點一個天賦看說明。打贏戰鬥、收集圖鑑可以拿天賦點。</p>
+          <>
+            <div class="ti-head"><b>Lv {meta.level}</b><span class="ti-lv">EXP {meta.exp}/{expToNext(meta.level)}</span></div>
+            <div class="expbar"><span style={{ width: `${(meta.exp / expToNext(meta.level)) * 100}%` }} /></div>
+            <p class="ti-hint">每升一級得 1 天賦點。點一個天賦看說明。</p>
+          </>
         )}
       </div>
       <div class="actions">
@@ -609,7 +613,7 @@ export function Help({ onClose }: { onClose: () => void }) {
         <li><b>岔路只有氛圍暗示</b>，大約七成準。商店和事件不算在戰鬥場數裡。</li>
         <li>第 1 章有 5 場戰鬥：第 3 場是小 BOSS，第 5 場是大 BOSS。</li>
         <li>每打完一段會回家休息：存款回滿，可以免費移除卡、升級 1 張。</li>
-        <li><b>天賦</b>：打贏戰鬥拿天賦點（小 BOSS 2 點、大 BOSS 3 點），圖鑑每收集 10% 再給 2 點。在標題畫面的「天賦」升級，重置免費。</li>
+        <li><b>等級與天賦</b>：打贏戰鬥拿經驗（一般 70、菁英 100、小 BOSS 120、大 BOSS 200），每升一級得 1 天賦點。在標題畫面的「天賦」使用，重置免費。</li>
       </ul>
       <div class="actions"><button type="button" class="btn primary" onClick={onClose}>知道了</button></div>
     </div>

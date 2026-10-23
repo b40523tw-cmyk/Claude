@@ -1,4 +1,4 @@
-import { backfillTalents, newMeta, type Meta } from '../engine/run';
+import { migrateLevels, newMeta, type Meta } from '../engine/run';
 import type { RunState } from '../engine/types';
 
 const RUN_KEY = 'tzrg.run.v1';
@@ -34,7 +34,7 @@ export function saveRun(G: RunState | null) {
 export function loadMeta(): Meta {
   const m = { ...newMeta(), ...(read<Meta>(META_KEY) ?? {}) };
   m.talents ??= {};
-  backfillTalents(m);
+  migrateLevels(m);
   return m;
 }
 
