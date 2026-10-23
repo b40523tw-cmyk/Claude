@@ -75,6 +75,9 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
   }, [G.fxSeq]);
   const lastFx = useRef(G.fxSeq);
 
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
   // Pick up new floating numbers after each action.
   useEffect(() => {
     const fresh = G.fx.filter((f) => f.id > lastFx.current);
@@ -90,8 +93,9 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
     setHit((h) => ({ ...h, ...hits }));
     setActing((a) => ({ ...a, ...acts }));
     const ids = new Set(fresh.map((f) => f.id));
-    const t = setTimeout(() => {
-      setFloats((cur) => cur.filter((f) => !ids.has(f.id)));
+    // Each batch clears itself. These timers must not be cancelled when the next
+    // action lands, or a monster stays stuck in its hurt pose.
+    timers.current.push(setTimeout(() => {
       setHit((h) => {
         const n = { ...h };
         for (const k of Object.keys(hits)) if (n[k] === hits[k]) delete n[k];
@@ -102,8 +106,8 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
         for (const k of Object.keys(acts)) if (n[k] === acts[k]) delete n[k];
         return n;
       });
-    }, 1100);
-    return () => clearTimeout(t);
+    }, 650));
+    timers.current.push(setTimeout(() => setFloats((cur) => cur.filter((f) => !ids.has(f.id))), 1100));
   }, [G.fxSeq]);
 
   useEffect(() => {
