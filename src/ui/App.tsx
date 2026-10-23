@@ -118,6 +118,7 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
       {menuOpen && (
         <Menu
           onResume={() => setMenuOpen(false)}
+          onDeck={() => { setMenuOpen(false); setDeckOpen(true); }}
           onSaveQuit={() => { saveRun(run); setMenuOpen(false); setView('title'); }}
           onAbandon={() => { setMenuOpen(false); backToTitle(); }}
         />

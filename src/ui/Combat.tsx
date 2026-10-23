@@ -162,7 +162,7 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
     }, 250);
   }
 
-  const handW = Math.min(window.innerWidth, 480) - 32;
+  const handW = Math.min(window.innerWidth, 480) - 32 - 70; // energy column sits left of the hand
   const cw = 82;
   const n = c.hand.length;
   const overlap = n > 1 && n * cw > handW ? (handW - cw * n) / (n - 1) : 6;
@@ -205,7 +205,6 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
             );
           })}
         </div>
-        <div class="player-floats">{floatsFor('player')}</div>
       </div>
 
       <div class="status-row">
@@ -228,23 +227,26 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
           : busy ? '怪物行動中…' : `第 ${c.turn} 回合　點卡牌查看，再點一次打出`)}
       </div>
 
-      <div class="hand" style={{ '--ov': `${overlap}px` } as Record<string, string | number>}>
-        {c.hand.map((h, i) => (
-          <CardView
-            key={h.uid}
-            card={h}
-            cost={handCost(G, i)}
-            selected={sel === i}
-            disabled={!canPlay(G, i)}
-            onClick={() => tapCard(i)}
-            style={{ zIndex: sel === i ? 50 : i, '--rot': `${(i - (n - 1) / 2) * 2.2}deg` } as Record<string, string | number>}
-          />
-        ))}
-      </div>
-
-      <div class="controls">
-        <div class="energy" aria-label={`能量 ${c.energy}`}><b>{c.energy}</b><small>資金</small></div>
-        <button type="button" class="pile" onClick={onDeck}>抽 {c.draw.length}<br />棄 {c.discard.length}</button>
+      <div class="tray">
+        <div class="energy" aria-label={`資金 ${c.energy}`}><b>{c.energy}</b><small>資金</small></div>
+        <div class="hand" style={{ '--ov': `${overlap}px` } as Record<string, string | number>}>
+          {c.hand.map((h, i) => (
+            <CardView
+              key={h.uid}
+              card={h}
+              cost={handCost(G, i)}
+              selected={sel === i}
+              disabled={!canPlay(G, i)}
+              onClick={() => tapCard(i)}
+              style={{ zIndex: sel === i ? 50 : i, '--rot': `${(i - (n - 1) / 2) * 2.2}deg` } as Record<string, string | number>}
+            />
+          ))}
+        </div>
+        <div class="hp php" aria-label={`存款 ${G.hp}/${G.maxHp}`}>
+          <span class="hp-fill" style={{ width: `${Math.max(0, G.hp / G.maxHp) * 100}%` }} />
+          <span class="hp-text">存款 {G.hp}/{G.maxHp}{c.block > 0 ? `　🛡️${c.block}` : ''}</span>
+          <div class="player-floats">{floatsFor('player')}</div>
+        </div>
         <button type="button" class="endturn" disabled={busy || !!c.over} onClick={doEndTurn}>結束回合</button>
       </div>
     </div>

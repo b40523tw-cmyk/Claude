@@ -22,6 +22,21 @@ const sortDeck = (d: CardInst[]) =>
 
 export function TopBar({ G, onDeck, onMenu }: { G: RunState; onDeck: () => void; onMenu: () => void }) {
   const pct = Math.max(0, G.hp / G.maxHp);
+  // In combat the savings bar lives under the hand; the top bar keeps chapter, gold and menu.
+  if (G.combat && G.screen.name === 'combat') {
+    return (
+      <header class="topbar combat-top">
+        <div class="tb-left relic-row">
+          {G.relics.map((r) => <span key={r} title={`${RELICS[r].name}：${RELICS[r].desc}`}>{RELICS[r].icon}</span>)}
+        </div>
+        <span class="where">第 {G.chapter} 章 <small>{G.fight}/{stageLength(G) || G.fight}</small></span>
+        <div class="tb-right">
+          <span class="gold">🪙 {G.gold}</span>
+          <button type="button" class="icon-btn" onClick={onMenu} aria-label="選單">☰</button>
+        </div>
+      </header>
+    );
+  }
   return (
     <header class="topbar">
       <div class="hp" aria-label={`存款 ${G.hp}/${G.maxHp}`}>
@@ -479,12 +494,13 @@ export function Help({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function Menu({ onResume, onSaveQuit, onAbandon }: { onResume: () => void; onSaveQuit: () => void; onAbandon: () => void }) {
+export function Menu({ onResume, onDeck, onSaveQuit, onAbandon }: { onResume: () => void; onDeck: () => void; onSaveQuit: () => void; onAbandon: () => void }) {
   const [confirm, setConfirm] = useState(false);
   return (
     <div class="modal center" role="dialog" aria-label="選單">
       <div class="menu">
         <button type="button" class="btn primary" onClick={onResume}>回到遊戲</button>
+        <button type="button" class="btn" onClick={onDeck}>查看牌組</button>
         <button type="button" class="btn" onClick={onSaveQuit}>存檔並回到主畫面</button>
         {!confirm
           ? <button type="button" class="btn" onClick={() => setConfirm(true)}>放棄這一輪</button>

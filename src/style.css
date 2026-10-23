@@ -435,3 +435,22 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .step-in { animation: step-in .5s calc(var(--walk-delay, 0s) + .25s) ease-out both; }
 @keyframes step-in { from { opacity: 0; translate: 0 12px; } }
 @media (prefers-reduced-motion: reduce) { .corridor.walk, .corridor.walk-out, .step-in { animation: none; } .leave-layer { display: none; } }
+
+/* Combat layout: chapter centred on top, gold + menu top right; hand, then savings bar and end turn, with funds on the left */
+.topbar.combat-top { display: grid; grid-template-columns: 1fr auto 1fr; flex-wrap: nowrap; }
+.combat-top .tb-left { width: auto; min-width: 0; overflow: hidden; }
+.combat-top .tb-right { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+.combat-top .where { font-size: 15px; padding: 4px 12px; border-radius: 999px; }
+.combat-top .gold { border-radius: 999px; padding: 3px 10px; }
+.tray {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; grid-template-areas: "energy hand hand" "energy hp end";
+  column-gap: 8px; row-gap: 10px; align-items: center;
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+}
+.tray .energy { grid-area: energy; align-self: center; width: 62px; height: 62px; }
+.tray .hand { grid-area: hand; min-width: 0; }
+.tray .php { grid-area: hp; flex: none; height: 34px; overflow: visible; }
+.tray .php .hp-fill { border-radius: 7px; }
+.tray .php .hp-text { line-height: 28px; font-size: 15px; }
+.tray .endturn { grid-area: end; margin-left: 0; padding: 10px 16px; }
+.tray .player-floats { top: -36px; bottom: auto; }
