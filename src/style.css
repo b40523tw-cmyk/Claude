@@ -56,6 +56,9 @@ button:focus-visible { outline: 3px solid var(--lantern); outline-offset: 2px; }
   transform: translateY(calc(sin(var(--i) * 1.1rad) * 10px));
   animation: sway 4s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -.6s);
 }
+/* painted backdrop: shade the top bar and hand areas so text stays readable */
+.shell.has-bg .corridor { background: linear-gradient(180deg, rgba(20,12,30,.45) 0%, rgba(20,12,30,0) 14%, rgba(20,12,30,0) 48%, rgba(20,12,30,.55) 72%, rgba(20,12,30,.8) 100%), var(--bg) center 70% / cover; }
+.shell.has-bg .corridor > * { display: none; }
 @keyframes sway { to { transform: translateY(calc(sin(var(--i) * 1.1rad) * 10px)) rotate(6deg); } }
 
 .frame {
@@ -169,6 +172,16 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .monster .monster-art { animation: breathe 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
 .monster.hit .monster-art { animation: hitshake .3s; }
 .monster-art.sprite { object-fit: contain; filter: drop-shadow(0 6px 4px rgba(0,0,0,.35)); user-select: none; }
+.monster.dying { pointer-events: none; }
+.monster.dying .monster-art { animation: die 1.15s ease-in forwards; }
+.monster.dying .mname, .monster.dying .bar, .monster.dying .intent { transition: opacity .3s; opacity: 0; }
+@keyframes die {
+  0% { opacity: 1; filter: brightness(2); transform: translateX(6px) rotate(3deg); }
+  12% { transform: none; filter: none; }
+  20%, 40% { opacity: .15; } 30%, 50% { opacity: 1; }
+  60% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(24px) scale(.85) rotate(-8deg); }
+}
 .monster.acting .monster-art { animation: lunge .7s ease-out; }
 @keyframes lunge { 0% { transform: none; } 30% { transform: translateY(14px) scale(1.12); } 100% { transform: none; } }
 .monster.targetable .monster-art { filter: drop-shadow(0 0 8px var(--lantern)); }
