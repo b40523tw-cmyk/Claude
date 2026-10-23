@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { CARDS, cardText } from '../data/cards';
 import { MONSTERS } from '../data/monsters';
-import { alive, canPlay, endTurn, handCost, incoming, needsTarget, playCard } from '../engine/combat';
+import { ENERGY_MAX, alive, canPlay, discardHand, endTurn, handCost, incoming, needsTarget, playCard } from '../engine/combat';
 import type { Fx, Intent, MonsterState, RunState } from '../engine/types';
 import { CardView } from './CardView';
 import { MonsterArt } from './MonsterArt';
@@ -132,7 +132,7 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
 
   function doPlay(i: number, target?: string) {
     if (!canPlay(G, i)) {
-      setInfo(`能量不夠：這張要 ${handCost(G, i)} 點。`);
+      setInfo(`資金不夠：這張要 ${handCost(G, i)} 點。`);
       return;
     }
     playCard(G, i, target);
@@ -148,6 +148,14 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
     }
     const d = MONSTERS[m.id];
     setInfo(`${d.name}：${d.passive ?? '沒有特殊能力'}`);
+  }
+
+  function doDiscard() {
+    if (busy || c.over) return;
+    setSel(null);
+    const n = discardHand(G);
+    setInfo(n ? `棄掉了 ${n} 張牌。` : null);
+    bump();
   }
 
   function doEndTurn() {
@@ -228,7 +236,10 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
       </div>
 
       <div class="tray">
-        <div class="energy" aria-label={`資金 ${c.energy}`}><b>{c.energy}</b><small>資金</small></div>
+        <div class="tray-left">
+          <div class="energy" aria-label={`資金 ${c.energy} / ${ENERGY_MAX}`}><b>{c.energy}</b><small>資金 /{ENERGY_MAX}</small></div>
+          <button type="button" class="dumpbtn" disabled={busy || !!c.over || !c.hand.some((h) => !h.stuck)} onClick={doDiscard}>棄光手牌</button>
+        </div>
         <div class="hand" style={{ '--ov': `${overlap}px` } as Record<string, string | number>}>
           {c.hand.map((h, i) => (
             <CardView

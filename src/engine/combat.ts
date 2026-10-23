@@ -1,12 +1,15 @@
 import { CARDS, cardCost, cardNums, type PlayCtx } from '../data/cards';
 import { MONSTERS } from '../data/monsters';
 import { pick, rand, shuffle } from './rng';
-import type { CardInst, CombatState, FightKind, MonsterState, RunState } from './types';
+import { tl, type CardInst, type CombatState, type FightKind, type MonsterState, type RunState } from './types';
 
-/** Each turn the hand refills up to this many cards; unplayed cards stay. */
+/** Draw this many each turn; unplayed cards stay in hand (the player can dump them with discardHand). */
 const HAND_DRAW = 5;
-const BASE_ENERGY = 3;
-const HAND_MAX = 10;
+const HAND_MAX = 7;
+/** 資金 carries over between turns: start at 5, +3 per turn, capped at 10. */
+export const ENERGY_START = 5;
+export const ENERGY_REGEN = 3;
+export const ENERGY_MAX = 10;
 
 const has = (G: RunState, relic: string) => G.relics.includes(relic);
 
@@ -93,10 +96,11 @@ export function startPlayerTurn(G: RunState) {
 
   c.tf = newTurnFlags(c.tf.pendingNextAttackCrit);
 
-  let energy = BASE_ENERGY;
+  let energy = first ? ENERGY_START : c.energy + ENERGY_REGEN;
   if (first && has(G, 'book')) energy++;
+  if (first && tl(G, 'freedom')) energy++;
   if (!first && has(G, 'attendance') && !c.lastTurnTookDamage) energy++;
-  c.energy = energy;
+  c.energy = Math.min(ENERGY_MAX, energy);
   if (first && has(G, 'vip')) c.st.combo = Math.max(c.st.combo, 3);
 
   // Start-of-turn effects
@@ -115,7 +119,7 @@ export function startPlayerTurn(G: RunState) {
   if (c.over) return;
 
   for (const h of c.hand) h.costMod = 0;
-  let n = Math.max(0, HAND_DRAW - c.hand.length);
+  let n = HAND_DRAW;
   if (first && has(G, 'notebook')) n += 2;
   if (first && has(G, 'trial')) n += 2;
   drawCards(G, n);
@@ -155,7 +159,9 @@ export function exposureMult(G: RunState) {
 
 /** Damage a monster's attack would deal after exposure. */
 export function incoming(G: RunState, dmg: number) {
-  return Math.round(dmg * exposureMult(G));
+  // 停損紀律: less damage while savings are under 30%.
+  const guard = G.hp < G.maxHp * 0.3 ? 1 - 0.1 * tl(G, 'stopLoss') : 1;
+  return Math.round(dmg * exposureMult(G) * guard);
 }
 
 function hurtMonster(G: RunState, m: MonsterState, dmg: number, crit: boolean) {
@@ -223,6 +229,12 @@ function checkDeath(G: RunState) {
     c.pw.lifeInsurance = 0;
     fx(G, 'player', '壽險理賠！', 'info');
     for (const m of alive(c)) hurtMonster(G, m, 20, false);
+    return;
+  }
+  if (tl(G, 'insurance') && !G.usedOnce.insurance) {
+    G.usedOnce.insurance = true;
+    G.hp = Math.max(1, Math.round(G.maxHp * 0.2));
+    fx(G, 'player', '保險意識！', 'info');
     return;
   }
   if (has(G, 'policy') && !G.usedOnce.policy) {
@@ -311,7 +323,7 @@ export function playCard(G: RunState, idx: number, targetUid?: string): boolean 
       loseHp(G, v, def.name);
     },
     draw: (v) => drawCards(G, v),
-    gainEnergy: (v) => { c.energy += v; },
+    gainEnergy: (v) => { c.energy = Math.min(ENERGY_MAX, c.energy + v); },
     N: (v) => v + c.pw.leverage,
     clearOneDebuff() {
       if (c.st.debt) c.st.debt = 0;
@@ -320,7 +332,7 @@ export function playCard(G: RunState, idx: number, targetUid?: string): boolean 
   };
 
   function strike(m: MonsterState, dmg: number, cardCrit?: number) {
-    let d = dmg + bullBonus;
+    let d = (dmg + bullBonus) * (1 + 0.05 * tl(G, 'circle'));
     bullBonus = 0;
     if (lunch) d *= 2;
     let isCrit = false;
@@ -358,7 +370,7 @@ export function playCard(G: RunState, idx: number, targetUid?: string): boolean 
   }
   // Every card played adds 1 combo; combo cards add their own bonus on top.
   c.st.combo += 1 + (def.type === 'combo' ? def.combo ?? 1 : 0);
-  if (card.id === 'cycle' && c.st.combo >= n.th) c.energy += 1;
+  if (card.id === 'cycle' && c.st.combo >= n.th) c.energy = Math.min(ENERGY_MAX, c.energy + 1);
   if (isAttack && c.pw.bullMarket) c.st.bull += c.pw.bullMarket;
 
   if (def.type === 'power') c.exhaust.push(stripHand(card));
@@ -370,13 +382,23 @@ function stripHand(h: CardInst & { costMod?: number }): CardInst {
   return { uid: h.uid, id: h.id, up: h.up, fused: h.fused };
 }
 
+/** 棄光手牌: the player throws away the whole hand, except cards a monster stuck there. */
+export function discardHand(G: RunState): number {
+  const c = G.combat!;
+  if (c.over) return 0;
+  const out = c.hand.filter((h) => !h.stuck);
+  for (const h of out) c.discard.push(stripHand(h));
+  c.hand = c.hand.filter((h) => h.stuck);
+  return out.length;
+}
+
 // ───────────── end of turn & monsters ─────────────
 
 export function endTurn(G: RunState) {
   const c = G.combat!;
   if (c.over) return;
 
-  if (has(G, 'tenure') && c.energy > 0) gainBlock(G, c.energy * 5);
+  if (has(G, 'tenure') && c.energy > 0) gainBlock(G, c.energy * 2);
 
   if (c.pw.liquidation && c.st.combo > c.pw.liquidation) {
     loseHp(G, has(G, 'stoporder') ? 5 : 10, '斷頭');

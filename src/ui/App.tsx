@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { finishCombat, newRun, setShopMeta, type Meta } from '../engine/run';
+import { awardCodex, finishCombat, newRun, setShopMeta, type Meta } from '../engine/run';
 import type { MajorTheme, RunState } from '../engine/types';
 import { Combat } from './Combat';
 import {
-  Codex, DeckModal, EndScreen, EventScreen, Help, Menu, Paths, RelicScreen, RestScreen, Reward, Shop, ThemeSelect, Title, TopBar,
+  Codex, DeckModal, Talents, EndScreen, EventScreen, Help, Menu, Paths, RelicScreen, RestScreen, Reward, Shop, ThemeSelect, Title, TopBar,
 } from './Screens';
 import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 
@@ -12,7 +12,7 @@ import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 const backdrops = import.meta.glob('../assets/bg/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
 const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop' };
 
-type View = 'title' | 'theme' | 'run' | 'codex' | 'help';
+type View = 'title' | 'theme' | 'run' | 'codex' | 'help' | 'talents';
 
 interface Hot {
   G: RunState | null;
@@ -42,8 +42,8 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
     w.claude?.hot?.snapshot?.(() => ({ G, meta, view }));
   });
 
-  function start(t: MajorTheme) {
-    const run = newRun(t);
+  function start(t: MajorTheme, minor?: MajorTheme) {
+    const run = newRun(t, undefined, meta.talents ?? {}, minor);
     meta.runs++;
     setG(run);
     saveRun(run);
@@ -65,6 +65,15 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
     setView('title');
   }
 
+  // Run over: pay out codex milestones once.
+  useEffect(() => {
+    if (!G || (G.screen.name !== 'gameOver' && G.screen.name !== 'chapterClear') || G.usedOnce.codexPaid) return;
+    G.usedOnce.codexPaid = true;
+    G.pointsEarned = (G.pointsEarned ?? 0) + awardCodex(meta);
+    saveMeta(meta);
+    setTick((t) => t + 1);
+  }, [G?.screen.name]);
+
   // Chapter clear: unlock the theme's achievement cards once.
   useEffect(() => {
     if (G?.screen.name === 'chapterClear' && !meta.unlockedThemes.includes(G.major)) {
@@ -84,12 +93,14 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
           onNew={() => setView('theme')}
           onContinue={() => setView('run')}
           onCodex={() => setView('codex')}
+          onTalents={() => setView('talents')}
           onHelp={() => setView('help')}
         />
       </Shell>
     );
   }
-  if (view === 'theme') return <Shell scene="theme"><ThemeSelect onPick={start} onBack={() => setView('title')} /></Shell>;
+  if (view === 'theme') return <Shell scene="theme"><ThemeSelect minorUnlocked={!!meta.talents?.allocation} onPick={start} onBack={() => setView('title')} /></Shell>;
+  if (view === 'talents') return <Shell scene="talents"><Talents meta={meta} save={() => { saveMeta(meta); setTick((t) => t + 1); }} onClose={() => setView('title')} /></Shell>;
   if (view === 'codex') return <Shell><Codex meta={meta} onClose={() => setView('title')} /></Shell>;
   if (view === 'help') return <Shell><Help onClose={() => setView('title')} /></Shell>;
 

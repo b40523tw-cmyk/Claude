@@ -1,10 +1,11 @@
 import { ALL_CARDS, CARDS, canFuse, type CardDef } from '../data/cards';
-import { monstersOf } from '../data/monsters';
+import { MONSTERS, monstersOf } from '../data/monsters';
 import { ALL_RELICS, RELICS } from '../data/relics';
 import { EVENTS } from '../data/events';
+import { FIGHT_POINTS } from '../data/talents';
 import { startCombat } from './combat';
 import { chance, pick, rand, randInt, shuffle, weighted } from './rng';
-import type { CardInst, FightKind, MajorTheme, NodeKind, PathOption, Rarity, RunState } from './types';
+import { tl, type CardInst, type FightKind, type MajorTheme, type NodeKind, type PathOption, type Rarity, type RunState } from './types';
 
 export const START_HP = 70;
 /**
@@ -26,13 +27,16 @@ export interface Meta {
   seenRelics: string[];
   runs: number;
   clears: number;
+  talentPoints: number; // unspent
+  talents: Record<string, number>;
+  codexAwards: number; // 10% codex milestones already paid out
 }
 
 export function newMeta(): Meta {
-  return { unlockedThemes: [], seenMonsters: [], beatenMonsters: [], seenCards: [], seenRelics: [], runs: 0, clears: 0 };
+  return { unlockedThemes: [], seenMonsters: [], beatenMonsters: [], seenCards: [], seenRelics: [], runs: 0, clears: 0, talentPoints: 0, talents: {}, codexAwards: 0 };
 }
 
-export function newRun(major: MajorTheme, seed = Math.floor(Math.random() * 2 ** 31)): RunState {
+export function newRun(major: MajorTheme, seed = Math.floor(Math.random() * 2 ** 31), talents: Record<string, number> = {}, minor?: MajorTheme): RunState {
   const G: RunState = {
     version: 1, seed, rng: seed, major, difficulty: 0,
     hp: START_HP, maxHp: START_HP, gold: 50,
@@ -41,10 +45,16 @@ export function newRun(major: MajorTheme, seed = Math.floor(Math.random() * 2 **
     usedOnce: {}, battles: 0, relicGuarantee: false,
     stats: { kills: 0, damage: 0, cardsPlayed: 0 },
     nextUid: 1, fx: [], fxSeq: 0, seen: [],
+    talents: { ...talents }, minor: talents.allocation && minor !== major ? minor : undefined, pointsEarned: 0,
   };
+  G.maxHp = G.hp = START_HP + 5 * tl(G, 'emergencyFund');
+  G.deckCap += 2 * tl(G, 'discipline');
   for (let i = 0; i < 5; i++) addCard(G, 'parttime');
   for (let i = 0; i < 4; i++) addCard(G, 'emergency');
   addCard(G, 'ledger');
+  // 多元收入: extra starting commons from the major theme.
+  const commons = ALL_CARDS.filter((d) => d.theme === major && d.rarity === 'common' && d.start);
+  for (let i = 0; i < tl(G, 'multiIncome'); i++) addCard(G, pick(G, commons).id);
   // The first fight of a run is a straight walk forward.
   beginFight(G, 'normal');
   return G;
@@ -115,7 +125,7 @@ export function makePaths(G: RunState): PathOption[] {
 
 /** About 70% of hints tell the truth. */
 function hintFor(G: RunState, k: NodeKind): string {
-  const shown = chance(G, 0.7) ? k : pick(G, (Object.keys(HINTS) as NodeKind[]).filter((x) => x !== k));
+  const shown = chance(G, 0.7 + 0.1 * tl(G, 'homework')) ? k : pick(G, (Object.keys(HINTS) as NodeKind[]).filter((x) => x !== k));
   return pick(G, HINTS[shown]);
 }
 
@@ -165,7 +175,7 @@ const RARITY_TABLE: Record<FightKind, Record<Rarity, number>> = {
 };
 
 export function goldGain(G: RunState, base: number) {
-  return Math.round(base * (G.relics.includes('cat') ? 1.5 : 1));
+  return Math.round(base * (G.relics.includes('cat') ? 1.5 : 1) * (1 + 0.1 * tl(G, 'sideIncome')));
 }
 
 /** Called by the UI once combat.over is set. */
@@ -187,9 +197,16 @@ export function finishCombat(G: RunState, meta: Meta) {
   if (G.relics.includes('trial') && G.battles % 3 === 0) gold -= 20;
   gold = goldGain(G, gold);
   G.gold = Math.max(0, G.gold + gold);
+  // 複利效應: interest on the purse after each win.
+  const interest = Math.floor(G.gold * 0.05 * tl(G, 'interest'));
+  G.gold += interest;
+
+  const pts = FIGHT_POINTS[kind];
+  meta.talentPoints = (meta.talentPoints ?? 0) + pts;
+  G.pointsEarned = (G.pointsEarned ?? 0) + pts;
 
   G.screen = {
-    name: 'reward', gold, cards: rollCards(G, RARITY_TABLE[kind], 3, meta), picked: false,
+    name: 'reward', gold: gold + interest, cards: rollCards(G, RARITY_TABLE[kind], tl(G, 'reinvest') ? 4 : 3, meta), picked: false,
     relicDrop: kind === 'boss',
   };
 }
@@ -204,7 +221,11 @@ export function rollCards(G: RunState, table: Record<Rarity, number>, count: num
   let guard = 0;
   while (out.length < count && guard++ < 200) {
     const others = (['stock', 'crypto', 'deriv', 'work', 'safe'] as MajorTheme[]).filter((t) => t !== G.major);
-    const theme = chance(G, 0.5) ? G.major : pick(G, others);
+    // 資產配置: major 40%, minor 30%, the rest split; otherwise major 50%.
+    const r = rand(G);
+    const theme = G.minor
+      ? (r < 0.4 ? G.major : r < 0.7 ? G.minor : pick(G, others.filter((t) => t !== G.minor)))
+      : (r < 0.5 ? G.major : pick(G, others));
     let rarity = weighted(G, table);
     let options = pool.filter((d) => d.theme === theme && d.rarity === rarity);
     // Fall back to any unlocked rarity of that theme, highest-first nearest.
@@ -343,11 +364,11 @@ export const UPGRADE_PRICE = 100;
 export const FUSE_PRICE = 120;
 
 export function price(G: RunState, base: number) {
-  return Math.round(base * (G.relics.includes('group') ? 0.7 : 1));
+  return Math.round(base * (G.relics.includes('group') ? 0.7 : 1) * (1 - 0.05 * tl(G, 'compare')));
 }
 
 export function removePrice(G: RunState) {
-  return price(G, 75 + 25 * G.removes);
+  return Math.round(price(G, 75 + 25 * G.removes) * (1 - 0.15 * tl(G, 'declutter')));
 }
 
 let shopMeta: Meta | null = null;
@@ -428,4 +449,15 @@ export function resolveEvent(G: RunState, choice: number, meta: Meta) {
 
 export function relicName(id: string) {
   return RELICS[id]?.name ?? id;
+}
+
+/** Codex bonus: +2 talent points for every 10% of monsters, cards and relics seen. Returns points added. */
+export function awardCodex(meta: Meta): number {
+  const total = Object.keys(MONSTERS).length + ALL_CARDS.filter((d) => d.theme !== 'neutral').length + ALL_RELICS.length;
+  const seen = meta.seenMonsters.length + meta.seenCards.length + meta.seenRelics.length;
+  const steps = Math.min(10, Math.floor((seen / total) * 10));
+  const fresh = Math.max(0, steps - (meta.codexAwards ?? 0));
+  meta.codexAwards = Math.max(meta.codexAwards ?? 0, steps);
+  meta.talentPoints = (meta.talentPoints ?? 0) + fresh * 2;
+  return fresh * 2;
 }

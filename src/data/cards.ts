@@ -233,7 +233,7 @@ const defs: CardDef[] = [
   {
     id: 'cycle', name: '當沖循環', theme: 'deriv', rarity: 'uncommon', type: 'combo', cost: [1, 1], start: false,
     base: { draw: 2, th: 5 }, up: { draw: 2, th: 4 },
-    desc: (n) => `抽 ${n.draw} 張；連擊達 ${n.th} 以上時獲得 1 能量`,
+    desc: (n) => `抽 ${n.draw} 張；連擊達 ${n.th} 以上時獲得 1 資金`,
     // energy check happens after combo increments; see combat.afterPlay
     play: (x, n) => x.draw(n.draw),
   },

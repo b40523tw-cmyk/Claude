@@ -15,6 +15,8 @@ export interface CardInst {
 /** A card while it sits in hand: may carry a temporary cost change. */
 export interface HandCard extends CardInst {
   costMod: number;
+  /** Put in the hand by a monster attack: can't be discarded at end of turn. */
+  stuck?: boolean;
 }
 
 export type Intent =
@@ -120,6 +122,11 @@ export type Screen =
   | { name: 'chapterClear' }
   | { name: 'gameOver' };
 
+/** Talent level for this run (0 when not taken). */
+export function tl(G: RunState, id: string): number {
+  return G.talents?.[id] ?? 0;
+}
+
 export interface RunState {
   version: 1;
   seed: number;
@@ -148,4 +155,7 @@ export interface RunState {
   fx: Fx[];
   fxSeq: number;
   seen: string[]; // monsters seen this run, for the codex
+  talents?: Record<string, number>; // talent levels locked in when the run started
+  minor?: MajorTheme; // 副修 (資產配置 talent)
+  pointsEarned?: number; // talent points earned this run
 }

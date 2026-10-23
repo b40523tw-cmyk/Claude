@@ -12,6 +12,7 @@ import type { CardInst, MajorTheme, RunState } from '../engine/types';
 import { CardView } from './CardView';
 import { MonsterArt } from './MonsterArt';
 import titleArt from '../assets/title.jpg';
+import { PATHS, TALENTS, spentPoints, talentCost, talentOpen, type TalentDef } from '../data/talents';
 
 type Bump = () => void;
 
@@ -62,16 +63,18 @@ const TITLE_ICONS = {
   play: <path d="M7 4.5v15l12-7.5z" fill="currentColor" />,
   save: <><rect x="4" y="4" width="16" height="16" rx="2.5" fill="currentColor" /><rect x="8" y="4" width="8" height="5" fill="#fff" /><rect x="7.5" y="13" width="9" height="5" rx="1" fill="#fff" /></>,
   book: <path d="M12 6.5C9.5 4.8 6.5 4.5 3.5 5v13c3-.5 6-.2 8.5 1.5m0-13c2.5-1.7 5.5-2 8.5-1.5v13c-3-.5-6-.2-8.5 1.5m0-13v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />,
+  tree: <path d="M12 3a5 5 0 0 0-4.6 7A4.5 4.5 0 0 0 9 18.5h2V21h2v-2.5h2a4.5 4.5 0 0 0 1.6-8.5A5 5 0 0 0 12 3z" fill="currentColor" />,
   gear: <><path d="M12 2.5l2 2.6 3.2-.6.6 3.2 2.7 1.9-1.4 3 1.4 3-2.7 1.9-.6 3.2-3.2-.6-2 2.6-2-2.6-3.2.6-.6-3.2L3 15.6l1.4-3L3 9.6l2.7-1.9.6-3.2 3.2.6z" fill="currentColor" /><circle cx="12" cy="12.6" r="3.2" fill="#fff" /></>,
 };
 
-export function Title({ hasSave, onNew, onContinue, onCodex, onHelp }: {
-  hasSave: boolean; onNew: () => void; onContinue: () => void; onCodex: () => void; onHelp: () => void;
+export function Title({ hasSave, onNew, onContinue, onCodex, onTalents, onHelp }: {
+  hasSave: boolean; onNew: () => void; onContinue: () => void; onCodex: () => void; onTalents: () => void; onHelp: () => void;
 }) {
   const items: [string, keyof typeof TITLE_ICONS, string, () => void, boolean][] = [
     ['開始遊戲', 'play', 'tb-start', onNew, false],
     ['上次存檔', 'save', 'tb-save', onContinue, !hasSave],
     ['圖鑑', 'book', 'tb-codex', onCodex, false],
+    ['天賦', 'tree', 'tb-talents', onTalents, false],
     ['說明', 'gear', 'tb-help', onHelp, false],
   ];
   return (
@@ -92,14 +95,18 @@ export function Title({ hasSave, onNew, onContinue, onCodex, onHelp }: {
   );
 }
 
-export function ThemeSelect({ onPick, onBack }: { onPick: (t: MajorTheme) => void; onBack: () => void }) {
+export function ThemeSelect({ onPick, onBack, minorUnlocked }: {
+  onPick: (t: MajorTheme, minor?: MajorTheme) => void; onBack: () => void; minorUnlocked?: boolean;
+}) {
   const themes: MajorTheme[] = ['stock', 'crypto', 'deriv', 'work', 'safe'];
   const [t, setT] = useState<MajorTheme>('stock');
+  const [minor, setMinor] = useState<MajorTheme | null>(null);
+  const m = minor && minor !== t ? minor : undefined;
   const samples = ALL_CARDS.filter((d) => d.theme === t && d.start).slice(0, 3);
   return (
     <div class="screen theme-select">
       <h2>選你的主修</h2>
-      <p class="sub">候選卡有一半會出自主修主題。</p>
+      <p class="sub">{m ? '候選卡 40% 出自主修、30% 出自副修。' : '候選卡有一半會出自主修主題。'}</p>
       <div class="theme-tabs" role="tablist">
         {themes.map((x) => (
           <button type="button" role="tab" aria-selected={x === t} key={x} class={`theme-tab t-${x} ${x === t ? 'on' : ''}`} onClick={() => setT(x)}>
@@ -111,9 +118,18 @@ export function ThemeSelect({ onPick, onBack }: { onPick: (t: MajorTheme) => voi
       <div class="card-row">
         {samples.map((d) => <CardView key={d.id} card={{ uid: d.id, id: d.id, up: false, fused: false }} size="big" />)}
       </div>
+      {minorUnlocked && (
+        <div class="minor-pick">
+          <span>副修</span>
+          <button type="button" class={`mchip ${!m ? 'on' : ''}`} onClick={() => setMinor(null)}>不選</button>
+          {themes.filter((x) => x !== t).map((x) => (
+            <button type="button" key={x} class={`mchip t-${x} ${m === x ? 'on' : ''}`} onClick={() => setMinor(x)}>{THEMES[x].icon}{THEMES[x].name}</button>
+          ))}
+        </div>
+      )}
       <div class="actions">
         <button type="button" class="btn" onClick={onBack}>返回</button>
-        <button type="button" class="btn primary" onClick={() => onPick(t)}>主修{THEMES[t].name}，出發</button>
+        <button type="button" class="btn primary" onClick={() => onPick(t, m)}>主修{THEMES[t].name}，出發</button>
       </div>
     </div>
   );
@@ -366,6 +382,7 @@ export function EndScreen({ G, win, unlocked, onDone }: { G: RunState; win: bool
         <div><dt>總傷害</dt><dd>{G.stats.damage}</dd></div>
         <div><dt>打出卡牌</dt><dd>{G.stats.cardsPlayed} 張</dd></div>
       </dl>
+      {!!G.pointsEarned && <p class="unlock">獲得 {G.pointsEarned} 天賦點，回標題畫面的「天賦」使用。</p>}
       {unlocked && <p class="unlock">解鎖了「{THEMES[G.major].name}」的 4 張進階卡，之後的候選卡會出現它們。</p>}
       {win && <p class="sub">第 2 章「成家立業」還在施工中。</p>}
       <div class="actions"><button type="button" class="btn primary" onClick={onDone}>回到標題</button></div>
@@ -475,19 +492,71 @@ export function Codex({ meta, onClose }: { meta: Meta; onClose: () => void }) {
   );
 }
 
+// ───────────── talents ─────────────
+
+export function Talents({ meta, save, onClose }: { meta: Meta; save: () => void; onClose: () => void }) {
+  const lv = meta.talents;
+  const buy = (t: TalentDef) => {
+    const have = lv[t.id] ?? 0;
+    const cost = talentCost(t, have);
+    if (have >= t.max || !talentOpen(t, lv) || meta.talentPoints < cost) return;
+    meta.talentPoints -= cost;
+    lv[t.id] = have + 1;
+    save();
+  };
+  const reset = () => {
+    meta.talentPoints += spentPoints(lv);
+    for (const k of Object.keys(lv)) delete lv[k];
+    save();
+  };
+  return (
+    <div class="screen talents">
+      <h2>天賦</h2>
+      <p class="sub">可用天賦點 <b class="tp">{meta.talentPoints}</b>　同一條路線要點滿前一個才能點下一個。</p>
+      <div class="talent-paths">
+        {PATHS.map((p) => (
+          <section key={p.id} class={`tpath tp-${p.id}`}>
+            <h3>{p.name}<small>{p.blurb}</small></h3>
+            {TALENTS.filter((t) => t.path === p.id).map((t) => {
+              const have = lv[t.id] ?? 0;
+              const maxed = have >= t.max;
+              const open = talentOpen(t, lv);
+              const cost = talentCost(t, have);
+              const afford = meta.talentPoints >= cost;
+              return (
+                <button type="button" key={t.id} class={`tnode ${maxed ? 'maxed' : ''} ${open ? '' : 'locked'} ${t.ultimate ? 'ult' : ''}`}
+                  disabled={maxed || !open || !afford} onClick={() => buy(t)}>
+                  <span class="tn-head"><b>{t.name}</b><span class="tn-lv">{have}/{t.max}</span></span>
+                  <span class="tn-desc">{t.desc(maxed ? have : have + 1)}</span>
+                  <span class="tn-cost">{maxed ? '已點滿' : !open ? '🔒 先點滿上一個' : `${cost} 點`}</span>
+                </button>
+              );
+            })}
+          </section>
+        ))}
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" disabled={!spentPoints(lv)} onClick={reset}>重置（免費）</button>
+        <button type="button" class="btn primary" onClick={onClose}>完成</button>
+      </div>
+    </div>
+  );
+}
+
 export function Help({ onClose }: { onClose: () => void }) {
   return (
     <div class="screen help">
       <h2>怎麼玩</h2>
       <ul class="rules">
         <li><b>存款就是血量。</b>歸零就破產，這一輪結束。存款會一直帶到下一場。</li>
-        <li><b>每回合有 3 點資金</b>（能量），手牌補到 5 張。沒打出的牌會留在手上，可以留著等時機。點卡片看說明，再點一次打出。</li>
+        <li><b>資金</b>（能量）開場 5 點，每回合 +3，最多存到 10 點，沒用完會留著。每回合抽 5 張，手牌最多 7 張，沒打出的牌會留著；不想要的話可以按「棄光手牌」（怪物塞給你的牌棄不掉）。點卡片看說明，再點一次打出。</li>
         <li><b>怪物頭上的圖示</b>是它下回合要做的事。🗡️ 後面的數字是它會打你多少。</li>
         <li><b>護盾</b>先擋傷害，同一場戰鬥會一直累積，打完才清除。</li>
         <li><b>打贏後二選一</b>：拿一張新卡，或回復 20% 存款。</li>
         <li><b>岔路只有氛圍暗示</b>，大約七成準。商店和事件不算在戰鬥場數裡。</li>
         <li>第 1 章有 5 場戰鬥：第 3 場是小 BOSS，第 5 場是大 BOSS。</li>
         <li>每打完一段會回家休息：存款回滿，可以免費移除卡、升級 1 張。</li>
+        <li><b>天賦</b>：打贏戰鬥拿天賦點（小 BOSS 2 點、大 BOSS 3 點），圖鑑每收集 10% 再給 2 點。在標題畫面的「天賦」升級，重置免費。</li>
       </ul>
       <div class="actions"><button type="button" class="btn primary" onClick={onClose}>知道了</button></div>
     </div>
