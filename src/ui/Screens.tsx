@@ -43,18 +43,34 @@ export function TopBar({ G, onDeck, onMenu }: { G: RunState; onDeck: () => void;
 
 // ───────────── title & theme select ─────────────
 
+const TITLE_ICONS = {
+  play: <path d="M7 4.5v15l12-7.5z" fill="currentColor" />,
+  save: <><rect x="4" y="4" width="16" height="16" rx="2.5" fill="currentColor" /><rect x="8" y="4" width="8" height="5" fill="#fff" /><rect x="7.5" y="13" width="9" height="5" rx="1" fill="#fff" /></>,
+  book: <path d="M12 6.5C9.5 4.8 6.5 4.5 3.5 5v13c3-.5 6-.2 8.5 1.5m0-13c2.5-1.7 5.5-2 8.5-1.5v13c-3-.5-6-.2-8.5 1.5m0-13v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />,
+  gear: <><path d="M12 2.5l2 2.6 3.2-.6.6 3.2 2.7 1.9-1.4 3 1.4 3-2.7 1.9-.6 3.2-3.2-.6-2 2.6-2-2.6-3.2.6-.6-3.2L3 15.6l1.4-3L3 9.6l2.7-1.9.6-3.2 3.2.6z" fill="currentColor" /><circle cx="12" cy="12.6" r="3.2" fill="#fff" /></>,
+};
+
 export function Title({ hasSave, onNew, onContinue, onCodex, onHelp }: {
   hasSave: boolean; onNew: () => void; onContinue: () => void; onCodex: () => void; onHelp: () => void;
 }) {
-  // The buttons are painted into the title art; these sit on top of them.
+  const items: [string, keyof typeof TITLE_ICONS, string, () => void, boolean][] = [
+    ['開始遊戲', 'play', 'tb-start', onNew, false],
+    ['上次存檔', 'save', 'tb-save', onContinue, !hasSave],
+    ['圖鑑', 'book', 'tb-codex', onCodex, false],
+    ['說明', 'gear', 'tb-help', onHelp, false],
+  ];
   return (
     <div class="title-screen" style={{ '--art': `url(${titleArt})` } as Record<string, string | number>}>
       <div class="title-stage">
         <h1 class="sr-only">Long Life</h1>
-        <button type="button" class="hot b1" aria-label="開始遊戲" onClick={onNew} />
-        <button type="button" class={`hot b2 ${hasSave ? '' : 'off'}`} aria-label="上次存檔" disabled={!hasSave} onClick={onContinue} />
-        <button type="button" class="hot b3" aria-label="圖鑑" onClick={onCodex} />
-        <button type="button" class="hot b4" aria-label="說明" onClick={onHelp} />
+        <nav class="title-menu">
+          {items.map(([label, icon, cls, fn, off]) => (
+            <button type="button" key={cls} class={`tbtn ${cls}`} disabled={off} onClick={fn}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">{TITLE_ICONS[icon]}</svg>
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
       <p class="fine">v0.3 · 第 1 章「社會新鮮人」試玩版</p>
     </div>
