@@ -354,7 +354,8 @@ export function playCard(G: RunState, idx: number, targetUid?: string): boolean 
     if (c.tf.certBonus) gainBlock(G, c.tf.certBonus);
     if (c.tf.slash) { c.st.combo += 1; randomHit(G, c.tf.slash); }
   }
-  if (def.type === 'combo') c.st.combo += def.combo ?? 1;
+  // Every card played adds 1 combo; combo cards add their own bonus on top.
+  c.st.combo += 1 + (def.type === 'combo' ? def.combo ?? 1 : 0);
   if (card.id === 'cycle' && c.st.combo >= n.th) c.energy += 1;
   if (isAttack && c.pw.bullMarket) c.st.bull += c.pw.bullMarket;
 

@@ -35,7 +35,7 @@ export interface CardDef {
   start: boolean; // unlocked on first play
   base: Nums;
   up: Nums;
-  /** Combo added after play (combo-type cards default to 1). */
+  /** Extra combo a combo-type card adds on top of the +1 every card gives (default 1). */
   combo?: number;
   target?: boolean;
   desc(n: Nums): string;
@@ -209,7 +209,7 @@ const defs: CardDef[] = [
   {
     id: 'spread', name: '價差交易', theme: 'deriv', rarity: 'common', type: 'combo', cost: [1, 1], start: true,
     base: { dmg: 3 }, up: { dmg: 4 }, combo: 2, target: true,
-    desc: (n) => `造成 ${n.dmg} 傷害 2 次，連擊 +2`,
+    desc: (n) => `造成 ${n.dmg} 傷害 2 次，額外連擊 +2`,
     play: (x, n) => { x.hit(n.dmg); x.hit(n.dmg); },
   },
   {
@@ -221,7 +221,7 @@ const defs: CardDef[] = [
   {
     id: 'optseller', name: '選擇權賣方', theme: 'deriv', rarity: 'uncommon', type: 'combo', cost: [1, 1], start: true,
     base: { block: 4 }, up: { block: 7 }, combo: 2,
-    desc: (n) => `獲得 ${n.block} 護盾，連擊 +2`,
+    desc: (n) => `獲得 ${n.block} 護盾，額外連擊 +2`,
     play: (x, n) => x.block(n.block),
   },
   {
@@ -250,7 +250,7 @@ const defs: CardDef[] = [
     play: (x, n) => { x.hit(x.st.combo * x.N(n.n)); x.st.combo = 0; },
   },
   {
-    id: 'x10', name: '十倍槓桿', theme: 'deriv', rarity: 'legendary', type: 'combo', cost: [2, 2], start: false,
+    id: 'x10', name: '十倍槓桿', theme: 'deriv', rarity: 'legendary', type: 'combo', cost: [1, 0], start: false,
     base: { th: 10 }, up: { th: 15 }, combo: 0,
     desc: (n) => `連擊翻倍；本回合連擊超過 ${n.th}，回合結束失去 10 存款（斷頭）`,
     play: (x, n) => {
@@ -291,7 +291,7 @@ const defs: CardDef[] = [
     play: (x) => x.hit(x.c.block),
   },
   {
-    id: 'license', name: '專業證照', theme: 'work', rarity: 'uncommon', type: 'defense', cost: [1, 1], start: true,
+    id: 'license', name: '專業證照', theme: 'work', rarity: 'uncommon', type: 'defense', cost: [0, 0], start: true,
     base: { block: 3, per: 3 }, up: { block: 5, per: 4 },
     desc: (n) => `獲得 ${n.block} 護盾；本回合之後每張防禦牌再 +${n.per} 護盾`,
     play: (x, n) => { x.block(n.block); x.tf.certBonus += n.per; },
@@ -309,7 +309,7 @@ const defs: CardDef[] = [
     play: (x) => { x.pw.seniority += 1; },
   },
   {
-    id: 'slash', name: '斜槓人生', theme: 'work', rarity: 'epic', type: 'combo', cost: [1, 1], start: false,
+    id: 'slash', name: '斜槓人生', theme: 'work', rarity: 'epic', type: 'combo', cost: [0, 0], start: false,
     base: { dmg: 3 }, up: { dmg: 5 },
     desc: (n) => `本回合每打一張防禦牌，連擊 +1 並對隨機怪物造成 ${n.dmg} 傷害`,
     play: (x, n) => { x.tf.slash += n.dmg; },
@@ -323,7 +323,7 @@ const defs: CardDef[] = [
 
   // ───────── 保守型 ─────────
   {
-    id: 'deposit', name: '定存', theme: 'safe', rarity: 'common', type: 'heal', cost: [1, 1], start: true,
+    id: 'deposit', name: '定存', theme: 'safe', rarity: 'common', type: 'heal', cost: [0, 0], start: true,
     base: { int: 3 }, up: { int: 4 },
     desc: (n) => `獲得 ${n.int} 利息`,
     play: (x, n) => { x.st.interest += n.int; },
