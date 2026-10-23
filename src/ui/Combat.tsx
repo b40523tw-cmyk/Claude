@@ -58,6 +58,7 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
   const [busy, setBusy] = useState(false);
   const [floats, setFloats] = useState<Fx[]>([]);
   const [hit, setHit] = useState<Record<string, number>>({});
+  const [acting, setActing] = useState<Record<string, number>>({});
   const lastFx = useRef(G.fxSeq);
 
   // Pick up new floating numbers after each action.
@@ -65,16 +66,26 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
     const fresh = G.fx.filter((f) => f.id > lastFx.current);
     lastFx.current = G.fxSeq;
     if (!fresh.length) return;
-    setFloats((cur) => [...cur, ...fresh]);
+    setFloats((cur) => [...cur, ...fresh.filter((f) => f.kind !== 'act')]);
     const hits: Record<string, number> = {};
-    for (const f of fresh) if (f.kind === 'dmg' || f.kind === 'crit' || f.kind === 'self') hits[f.target] = f.id;
+    const acts: Record<string, number> = {};
+    for (const f of fresh) {
+      if (f.kind === 'dmg' || f.kind === 'crit' || f.kind === 'self') hits[f.target] = f.id;
+      if (f.kind === 'act') acts[f.target] = f.id;
+    }
     setHit((h) => ({ ...h, ...hits }));
+    setActing((a) => ({ ...a, ...acts }));
     const ids = new Set(fresh.map((f) => f.id));
     const t = setTimeout(() => {
       setFloats((cur) => cur.filter((f) => !ids.has(f.id)));
       setHit((h) => {
         const n = { ...h };
         for (const k of Object.keys(hits)) if (n[k] === hits[k]) delete n[k];
+        return n;
+      });
+      setActing((a) => {
+        const n = { ...a };
+        for (const k of Object.keys(acts)) if (n[k] === acts[k]) delete n[k];
         return n;
       });
     }, 1100);
@@ -161,12 +172,12 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
               <button
                 type="button"
                 key={m.uid}
-                class={`monster k-${d.kind} ${hit[m.uid] ? 'hit' : ''} ${targetable ? 'targetable' : ''}`}
+                class={`monster k-${d.kind} ${hit[m.uid] ? 'hit' : ''} ${acting[m.uid] ? 'acting' : ''} ${targetable ? 'targetable' : ''}`}
                 onClick={() => tapMonster(m)}
                 aria-label={`${d.name} 存款 ${m.hp}/${m.maxHp}`}
               >
                 <IntentBadge G={G} it={m.intent} />
-                <MonsterArt id={m.id} size={living.length > 2 ? 96 : living.length > 1 ? 118 : 156} />
+                <MonsterArt id={m.id} size={living.length > 2 ? 100 : living.length > 1 ? 130 : 190} pose={hit[m.uid] ? 'hurt' : acting[m.uid] ? 'attack' : 'idle'} />
                 <span class="mname">{d.name}</span>
                 <span class="bar"><span style={{ width: `${(m.hp / m.maxHp) * 100}%` }} /><em>{m.hp}/{m.maxHp}</em></span>
                 {m.block > 0 && <span class="mblock">🛡️{m.block}</span>}

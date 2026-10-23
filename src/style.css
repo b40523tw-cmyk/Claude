@@ -168,6 +168,9 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 }
 .monster .monster-art { animation: breathe 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
 .monster.hit .monster-art { animation: hitshake .3s; }
+.monster-art.sprite { object-fit: contain; filter: drop-shadow(0 6px 4px rgba(0,0,0,.35)); user-select: none; }
+.monster.acting .monster-art { animation: lunge .7s ease-out; }
+@keyframes lunge { 0% { transform: none; } 30% { transform: translateY(14px) scale(1.12); } 100% { transform: none; } }
 .monster.targetable .monster-art { filter: drop-shadow(0 0 8px var(--lantern)); }
 @keyframes breathe { 50% { transform: scale(1.03, .97); } }
 @keyframes hitshake { 0% { transform: translateX(0); filter: brightness(2); } 40% { transform: translateX(8px) rotate(4deg); } 100% { transform: translateX(0); } }

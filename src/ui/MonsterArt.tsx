@@ -169,7 +169,17 @@ const art: Record<string, () => preact.JSX.Element> = {
   ),
 };
 
-export function MonsterArt({ id, size = 140 }: { id: string; size?: number }) {
+export type Pose = 'idle' | 'attack' | 'hurt';
+
+// Painted sprites replace the SVG drawings as they arrive.
+const sprites = import.meta.glob('../assets/monsters/*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+function sprite(id: string, pose: Pose): string | undefined {
+  return sprites[`../assets/monsters/${id}-${pose}.webp`] ?? sprites[`../assets/monsters/${id}-idle.webp`];
+}
+
+export function MonsterArt({ id, size = 140, pose = 'idle' }: { id: string; size?: number; pose?: Pose }) {
+  const src = sprite(id, pose);
+  if (src) return <img src={src} width={size} height={size} alt="" aria-hidden="true" class={`monster-art sprite pose-${pose}`} draggable={false} />;
   const draw = art[id];
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} aria-hidden="true" class="monster-art">

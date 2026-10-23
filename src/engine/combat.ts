@@ -398,6 +398,7 @@ function monsterAct(G: RunState, m: MonsterState) {
   const c = G.combat!;
   const it = m.intent;
   m.block = 0;
+  if (it.kind === 'attack' || it.kind === 'attackDebt' || it.kind === 'attackHeal' || (it.kind === 'summon' && it.dmg)) fx(G, m.uid, '', 'act');
   switch (it.kind) {
     case 'attack':
       if (it.buff && m.id !== 'revolving') m.atk += it.buff;

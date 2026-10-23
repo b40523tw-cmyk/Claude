@@ -77,7 +77,7 @@ export interface Fx {
   id: number;
   target: string; // 'player' or monster uid
   text: string;
-  kind: 'dmg' | 'crit' | 'block' | 'heal' | 'info' | 'self';
+  kind: 'dmg' | 'crit' | 'block' | 'heal' | 'info' | 'self' | 'act'; // act: no text, triggers the attack pose
 }
 
 export interface CombatState {
