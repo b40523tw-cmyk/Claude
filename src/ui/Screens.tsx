@@ -479,12 +479,13 @@ export function Help({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function Menu({ onResume, onAbandon }: { onResume: () => void; onAbandon: () => void }) {
+export function Menu({ onResume, onSaveQuit, onAbandon }: { onResume: () => void; onSaveQuit: () => void; onAbandon: () => void }) {
   const [confirm, setConfirm] = useState(false);
   return (
     <div class="modal center" role="dialog" aria-label="選單">
       <div class="menu">
         <button type="button" class="btn primary" onClick={onResume}>回到遊戲</button>
+        <button type="button" class="btn" onClick={onSaveQuit}>存檔並回到主畫面</button>
         {!confirm
           ? <button type="button" class="btn" onClick={() => setConfirm(true)}>放棄這一輪</button>
           : <button type="button" class="btn danger" onClick={onAbandon}>確定放棄（進度會消失）</button>}
