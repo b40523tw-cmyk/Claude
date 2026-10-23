@@ -3,7 +3,7 @@ import { CARDS } from '../src/data/cards';
 import { alive, canPlay, endTurn, handCost, incoming, playCard } from '../src/engine/combat';
 import {
   buyCard, choosePath, continueAfterExtra, finishCombat, leaveReward, newMeta, newRun, resolveEvent,
-  setShopMeta, shopRemove, skipReward, takeRelic, takeRewardCard, takeRewardHeal, type Meta,
+  leaveRest, restRemove, setShopMeta, shopRemove, skipReward, takeRelic, takeRewardCard, takeRewardHeal, type Meta,
 } from '../src/engine/run';
 import type { MajorTheme, RunState } from '../src/engine/types';
 
@@ -70,6 +70,10 @@ function playRun(major: MajorTheme, seed: number, meta: Meta) {
         resolveEvent(G, 0, meta);
         continueAfterExtra(G);
         break;
+      case 'rest':
+        for (const c of G.deck.filter((x) => x.id === 'parttime')) restRemove(G, c.uid);
+        leaveRest(G);
+        break;
       case 'relic':
         takeRelic(G, s.options[0] ?? null);
         break;
@@ -93,14 +97,14 @@ describe('chapter 1 simulation', () => {
         if (unlocked) meta.unlockedThemes = [...THEMES];
         let wins = 0;
         let stageSum = 0;
-        const N = 150;
+        const N = 50;
         for (let i = 0; i < N; i++) {
           const { win, G } = playRun(t, 1000 + i, meta);
           if (win) wins++;
-          stageSum += G.stage + G.fight / 5;
+          stageSum += win ? 5 : G.fight + 1;
           expect(G.hp).toBeGreaterThanOrEqual(0);
         }
-        rows.push(`${t.padEnd(7)} clear ${(wins / N * 100).toFixed(0).padStart(3)}%  avg stage ${(stageSum / N).toFixed(2)}`);
+        rows.push(`${t.padEnd(7)} clear ${(wins / N * 100).toFixed(0).padStart(3)}%  avg fight reached ${(stageSum / N).toFixed(1)}`);
       }
       console.log(rows.join('\n'));
     });

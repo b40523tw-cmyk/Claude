@@ -7,8 +7,15 @@ import { chance, pick, rand, randInt, shuffle, weighted } from './rng';
 import type { CardInst, FightKind, MajorTheme, NodeKind, PathOption, Rarity, RunState } from './types';
 
 export const START_HP = 70;
-export const STAGES = 5;
-export const FIGHTS_PER_STAGE = 5;
+/**
+ * Chapter layout: one array per stage, one slot per fight. `null` = the player
+ * picks a path (normal / elite / shop / event); a kind = that fight is fixed.
+ * A rest stop (full heal, free deck edits) follows every stage.
+ */
+export const CHAPTER_LAYOUT: (FightKind | null)[][] = [
+  [null, null, 'miniboss', null, 'boss'],
+];
+export const MIN_DECK = 8;
 export const HEAL_PCT = 0.2;
 
 export interface Meta {
@@ -57,11 +64,11 @@ export function removeCard(G: RunState, uid: string) {
 
 /** Kind of the fight that comes next in this stage, if forced. */
 function forcedFight(G: RunState): FightKind | null {
-  if (G.fight === FIGHTS_PER_STAGE - 1) {
-    if (G.stage === 3) return 'miniboss';
-    if (G.stage === STAGES) return 'boss';
-  }
-  return null;
+  return CHAPTER_LAYOUT[G.stage - 1]?.[G.fight] ?? null;
+}
+
+export function stageLength(G: RunState) {
+  return CHAPTER_LAYOUT[G.stage - 1]?.length ?? 0;
 }
 
 const HINTS: Record<NodeKind, string[]> = {
@@ -96,7 +103,7 @@ export function makePaths(G: RunState): PathOption[] {
     return opts;
   }
   const count = chance(G, 0.2) ? 3 : 2;
-  const early = G.stage === 1 && G.fight < 2;
+  const early = G.stage === 1 && G.fight < 1;
   const kinds: NodeKind[] = [];
   while (kinds.length < count) {
     const k = weighted(G, { normal: 45, elite: early ? 0 : 18, shop: 15, event: 22 } as Record<NodeKind, number>);
@@ -254,11 +261,37 @@ export function leaveReward(G: RunState, meta: Meta) {
 }
 
 function advance(G: RunState) {
-  if (G.fight >= FIGHTS_PER_STAGE) {
-    G.fight = 0;
-    G.stage++;
+  if (G.fight >= stageLength(G)) {
+    const healed = G.maxHp - G.hp;
+    G.hp = G.maxHp;
+    G.screen = { name: 'rest', healed, upgraded: false };
+    return;
   }
-  if (G.stage > STAGES) {
+  G.screen = { name: 'paths', options: makePaths(G) };
+}
+
+// ───────────── rest stop ─────────────
+
+export function restRemove(G: RunState, uid: string): boolean {
+  if (G.screen.name !== 'rest' || G.deck.length <= MIN_DECK) return false;
+  removeCard(G, uid);
+  return true;
+}
+
+export function restUpgrade(G: RunState, uid: string): boolean {
+  if (G.screen.name !== 'rest' || G.screen.upgraded) return false;
+  const c = G.deck.find((x) => x.uid === uid);
+  if (!c || c.up) return false;
+  c.up = true;
+  G.screen.upgraded = true;
+  return true;
+}
+
+export function leaveRest(G: RunState) {
+  if (G.screen.name !== 'rest') return;
+  G.fight = 0;
+  G.stage++;
+  if (G.stage > CHAPTER_LAYOUT.length) {
     G.screen = { name: 'chapterClear' };
     return;
   }

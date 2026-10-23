@@ -67,23 +67,23 @@ const defs: MonsterDef[] = [
     next: (m) => ({ kind: 'attack', dmg: m.atk }),
   },
   {
-    id: 'studentloan', name: '學貸', kind: 'miniboss', chapter: 1, hp: 90, atk: 10, test: '綜合入門檢定',
+    id: 'studentloan', name: '學貸', kind: 'miniboss', chapter: 1, hp: 55, atk: 7, test: '綜合入門檢定',
     passive: '每 3 回合「利息計算」攻擊力 +4',
     lore: '畢業典禮那天，它是唯一確定會一直陪著你的同學。',
     next: (m) => ((m.t + 1) % 3 === 0 ? { kind: 'attack', dmg: m.atk + 4, buff: 4 } : { kind: 'attack', dmg: m.atk }),
   },
   {
-    id: 'revolving', name: '卡債循環利息', kind: 'boss', chapter: 1, hp: 150, atk: 6, test: '太慢的保守型',
-    passive: '攻擊力每回合 +3；存款低於一半時召喚「最低應繳」',
+    id: 'revolving', name: '卡債循環利息', kind: 'boss', chapter: 1, hp: 80, atk: 6, test: '太慢的保守型',
+    passive: '攻擊力每回合 +2；存款低於一半時召喚「最低應繳」',
     lore: '年利率 15%。銀行說這叫「循環」，因為你會一直回來。',
     next: (m) => {
-      const dmg = Math.max(0, m.atk + 3 * m.t - (m.flags.relief ?? 0));
+      const dmg = Math.max(0, m.atk + 2 * m.t - (m.flags.relief ?? 0));
       if (!m.flags.summoned && m.hp < m.maxHp / 2) return { kind: 'summon', dmg };
-      return { kind: 'attack', dmg, buff: 3 };
+      return { kind: 'attack', dmg, buff: 2 };
     },
   },
   {
-    id: 'minpay', name: '最低應繳', kind: 'minion', chapter: 1, hp: 20, atk: 4, test: '',
+    id: 'minpay', name: '最低應繳', kind: 'minion', chapter: 1, hp: 12, atk: 4, test: '',
     passive: '擊倒它，BOSS 攻擊力 -5',
     lore: '每個月只要繳一點點，就能永遠不用繳完。',
     next: (m) => ({ kind: 'attack', dmg: m.atk }),

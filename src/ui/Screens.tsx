@@ -4,7 +4,7 @@ import { EVENTS } from '../data/events';
 import { ALL_MONSTERS, MONSTERS } from '../data/monsters';
 import { ALL_RELICS, RELICS } from '../data/relics';
 import {
-  FUSE_PRICE, UPGRADE_PRICE, buyCard, choosePath, continueAfterExtra, fusablePairs, healAmount, leaveReward,
+  FUSE_PRICE, MIN_DECK, UPGRADE_PRICE, buyCard, leaveRest, restRemove, restUpgrade, stageLength, choosePath, continueAfterExtra, fusablePairs, healAmount, leaveReward,
   price, removePrice, resolveEvent, shopFuse, shopRemove, shopUpgrade, skipReward, takeRelic, takeRewardCard,
   takeRewardHeal, type Meta,
 } from '../engine/run';
@@ -28,7 +28,7 @@ export function TopBar({ G, onDeck, onMenu }: { G: RunState; onDeck: () => void;
         <span class="hp-text">存款 {G.hp}/{G.maxHp}{G.combat && G.combat.block > 0 ? `　🛡️${G.combat.block}` : ''}</span>
       </div>
       <span class="gold">🪙 {G.gold}</span>
-      <span class="where">{G.chapter}-{Math.min(G.stage, 5)} <small>{G.fight}/5</small></span>
+      <span class="where">第 {G.chapter} 章 <small>{G.fight}/{stageLength(G) || G.fight}</small></span>
       <button type="button" class="icon-btn" onClick={onDeck} aria-label="查看牌組">🂠 {G.deck.length}</button>
       <button type="button" class="icon-btn" onClick={onMenu} aria-label="選單">☰</button>
       {G.relics.length > 0 && (
@@ -60,7 +60,7 @@ export function Title({ hasSave, onNew, onContinue, onCodex, onHelp }: {
         <button type="button" class="btn" onClick={onCodex}>圖鑑</button>
         <button type="button" class="btn" onClick={onHelp}>怎麼玩</button>
       </div>
-      <p class="fine">v0.1 · 第 1 章「社會新鮮人」試玩版</p>
+      <p class="fine">v0.2 · 第 1 章「社會新鮮人」試玩版</p>
     </div>
   );
 }
@@ -100,7 +100,7 @@ export function Paths({ G, bump }: { G: RunState; bump: Bump }) {
   return (
     <div class="screen paths">
       <h2>前面有 {opts.length} 條路</h2>
-      <p class="sub">第 {G.stage} 關，還有 {5 - G.fight} 場要打。</p>
+      <p class="sub">這一段還有 {stageLength(G) - G.fight} 場要打。</p>
       <div class={`doors n${opts.length}`}>
         {opts.map((o, i) => (
           <button type="button" key={i} class={`door ${o.kind === 'boss' || o.kind === 'miniboss' ? 'big' : ''}`} onClick={() => { choosePath(G, o); bump(); }}>
@@ -286,6 +286,41 @@ export function RelicScreen({ G, bump }: { G: RunState; bump: Bump }) {
   );
 }
 
+// ───────────── rest stop ─────────────
+
+export function RestScreen({ G, bump }: { G: RunState; bump: Bump }) {
+  const [mode, setMode] = useState<'remove' | 'upgrade'>('remove');
+  if (G.screen.name !== 'rest') return null;
+  const s = G.screen;
+  return (
+    <div class="screen rest">
+      <div class="event-icon" aria-hidden="true">🛋️</div>
+      <h2>回家休息一下</h2>
+      <p class="sub">{s.healed > 0 ? `存款回滿了（+${s.healed}）。` : '存款是滿的。'}趁現在整理牌組。</p>
+      <div class="seg" role="tablist">
+        <button type="button" role="tab" aria-selected={mode === 'remove'} class={mode === 'remove' ? 'on' : ''} onClick={() => setMode('remove')}>移除卡（免費）</button>
+        <button type="button" role="tab" aria-selected={mode === 'upgrade'} class={mode === 'upgrade' ? 'on' : ''} onClick={() => setMode('upgrade')}>升級 1 張{s.upgraded ? '（已用）' : ''}</button>
+      </div>
+      {mode === 'remove' ? (
+        <>
+          <p class="sub">點卡片就移除，可以移除很多張，牌組至少留 {MIN_DECK} 張（目前 {G.deck.length} 張）。</p>
+          <DeckGrid deck={G.deck} onPick={(c) => { restRemove(G, c.uid); bump(); }} />
+        </>
+      ) : s.upgraded ? (
+        <p class="sub">這次休息已經升級過一張了。</p>
+      ) : (
+        <>
+          <p class="sub">卡面顯示升級後的效果，點一張升級。</p>
+          <DeckGrid deck={G.deck.filter((c) => !c.up)} previewUp onPick={(c) => { restUpgrade(G, c.uid); bump(); }} />
+        </>
+      )}
+      <div class="actions sticky">
+        <button type="button" class="btn primary" onClick={() => { leaveRest(G); bump(); }}>整理好了，出發</button>
+      </div>
+    </div>
+  );
+}
+
 // ───────────── end screens ─────────────
 
 export function EndScreen({ G, win, unlocked, onDone }: { G: RunState; win: boolean; unlocked: boolean; onDone: () => void }) {
@@ -299,7 +334,7 @@ export function EndScreen({ G, win, unlocked, onDone }: { G: RunState; win: bool
           : '你的存款歸零了。隔天，銀行寄來一封很有禮貌的信，信封是粉紅色的。'}
       </p>
       <dl class="stats">
-        <div><dt>走到</dt><dd>第 {G.chapter} 章 第 {Math.min(G.stage, 5)} 關</dd></div>
+        <div><dt>走到</dt><dd>第 {G.chapter} 章 第 {G.fight + (G.combat ? 1 : 0)} 場</dd></div>
         <div><dt>打倒</dt><dd>{G.stats.kills} 隻</dd></div>
         <div><dt>總傷害</dt><dd>{G.stats.damage}</dd></div>
         <div><dt>打出卡牌</dt><dd>{G.stats.cardsPlayed} 張</dd></div>
@@ -423,8 +458,9 @@ export function Help({ onClose }: { onClose: () => void }) {
         <li><b>怪物頭上的圖示</b>是它下回合要做的事。🗡️ 後面的數字是它會打你多少。</li>
         <li><b>護盾</b>先擋傷害，下回合開始時清空。</li>
         <li><b>打贏後二選一</b>：拿一張新卡，或回復 20% 存款。</li>
-        <li><b>岔路只有氛圍暗示</b>，大約七成準。商店和事件不算在 5 場戰鬥裡。</li>
-        <li>一關 5 場戰鬥，第 3 關最後是小 BOSS，第 5 關最後是大 BOSS。</li>
+        <li><b>岔路只有氛圍暗示</b>，大約七成準。商店和事件不算在戰鬥場數裡。</li>
+        <li>第 1 章有 5 場戰鬥：第 3 場是小 BOSS，第 5 場是大 BOSS。</li>
+        <li>每打完一段會回家休息：存款回滿，可以免費移除卡、升級 1 張。</li>
       </ul>
       <div class="actions"><button type="button" class="btn primary" onClick={onClose}>知道了</button></div>
     </div>

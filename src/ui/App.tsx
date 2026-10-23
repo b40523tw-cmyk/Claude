@@ -3,7 +3,7 @@ import { finishCombat, newRun, setShopMeta, type Meta } from '../engine/run';
 import type { MajorTheme, RunState } from '../engine/types';
 import { Combat } from './Combat';
 import {
-  Codex, DeckModal, EndScreen, EventScreen, Help, Menu, Paths, RelicScreen, Reward, Shop, ThemeSelect, Title, TopBar,
+  Codex, DeckModal, EndScreen, EventScreen, Help, Menu, Paths, RelicScreen, RestScreen, Reward, Shop, ThemeSelect, Title, TopBar,
 } from './Screens';
 import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 
@@ -98,6 +98,7 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
   else if (s.name === 'shop') body = <Shop G={run} bump={bump} />;
   else if (s.name === 'event') body = <EventScreen G={run} meta={meta} bump={bump} />;
   else if (s.name === 'relic') body = <RelicScreen G={run} bump={bump} />;
+  else if (s.name === 'rest') body = <RestScreen G={run} bump={bump} />;
   else if (s.name === 'chapterClear') body = <EndScreen G={run} win unlocked={unlockedNow} onDone={backToTitle} />;
   else if (s.name === 'gameOver') body = <EndScreen G={run} win={false} unlocked={false} onDone={backToTitle} />;
 
@@ -125,7 +126,6 @@ function Shell({ children, ch = 1, scene = 'title' }: { children: preact.Compone
         <div class="wall right" />
         <div class="floor" />
         <div class="lanterns">{Array.from({ length: 6 }, (_, i) => <span key={i} style={{ '--i': i } as Record<string, string | number>} />)}</div>
-        <div class="signs"><span>當舖</span><span>現金借款</span><span>夾娃娃</span><span>手機殼</span></div>
       </div>
       <div class="frame">{children}</div>
     </div>

@@ -115,6 +115,7 @@ export type Screen =
   | { name: 'shop'; stock: { card: CardInst; price: number; sold: boolean }[]; then: 'fight' }
   | { name: 'event'; eventId: string; resolved: string | null }
   | { name: 'relic'; options: string[] }
+  | { name: 'rest'; healed: number; upgraded: boolean }
   | { name: 'chapterClear' }
   | { name: 'gameOver' };
 
