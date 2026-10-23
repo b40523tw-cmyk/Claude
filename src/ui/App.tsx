@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { finishCombat, newRun, setShopMeta, type Meta } from '../engine/run';
 import type { MajorTheme, RunState } from '../engine/types';
 import { Combat } from './Combat';
@@ -126,17 +126,59 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
   );
 }
 
-function Shell({ children, ch = 1, scene = 'title', step }: { children: preact.ComponentChildren; ch?: number; scene?: string; step?: string }) {
-  const bg = backdrops[`../assets/bg/ch${ch}-${scene}.jpg`] ?? backdrops[`../assets/bg/${SHARED_BG[scene]}.jpg`];
+// The fork in the road uses the chapter's combat street.
+const SAME_AS: Record<string, string> = { paths: 'combat' };
+
+function backdropFor(ch: number, scene: string): string | undefined {
+  const sc = SAME_AS[scene] ?? scene;
+  return backdrops[`../assets/bg/ch${ch}-${sc}.jpg`] ?? backdrops[`../assets/bg/${SHARED_BG[sc]}.jpg`];
+}
+
+function Corridor({ bg, cls = '' }: { bg?: string; cls?: string }) {
   return (
-    <div class={`shell ch${ch} sc-${scene} ${bg ? 'has-bg' : ''}`} style={bg ? ({ '--bg': `url(${bg})` } as Record<string, string | number>) : undefined}>
-      <div class={`corridor ${step ? 'walk' : ''}`} aria-hidden="true" key={step ?? scene}>
-        <div class="wall left" />
-        <div class="wall right" />
-        <div class="floor" />
-        <div class="lanterns">{Array.from({ length: 6 }, (_, i) => <span key={i} style={{ '--i': i } as Record<string, string | number>} />)}</div>
-      </div>
+    <div class={`corridor ${bg ? 'bgimg' : ''} ${cls}`} aria-hidden="true" style={bg ? ({ '--bg': `url(${bg})` } as Record<string, string | number>) : undefined}>
+      <div class="wall left" />
+      <div class="wall right" />
+      <div class="floor" />
+      <div class="lanterns">{Array.from({ length: 6 }, (_, i) => <span key={i} style={{ '--i': i } as Record<string, string | number>} />)}</div>
+    </div>
+  );
+}
+
+const LEAVE_MS = 850;
+
+// Screen changes play in two beats: the old scene walks on and fades to black,
+// then the new scene fades in while the camera keeps walking.
+function Shell({ children, ch = 1, scene = 'title', step }: { children: preact.ComponentChildren; ch?: number; scene?: string; step?: string }) {
+  const bg = backdropFor(ch, scene);
+  const last = useRef<{ step?: string; bg?: string; scene: string }>({ scene });
+  const leave = useRef<{ id: string; bg?: string; scene: string } | null>(null);
+  const delay = useRef<{ step?: string; ms: number }>({ ms: 0 });
+  const [, redraw] = useState(0);
+  if (step !== last.current.step) {
+    leave.current = step && last.current.step ? { id: step, bg: last.current.bg, scene: last.current.scene } : null;
+    delay.current = { step, ms: leave.current ? LEAVE_MS : 0 };
+  }
+  last.current = { step, bg, scene };
+  useEffect(() => {
+    const id = leave.current?.id;
+    if (!id) return;
+    const t = setTimeout(() => {
+      if (leave.current?.id === id) { leave.current = null; redraw((n) => n + 1); }
+    }, LEAVE_MS);
+    return () => clearTimeout(t);
+  }, [step]);
+
+  const style = { '--walk-delay': `${delay.current.ms}ms`, ...(bg ? { '--bg': `url(${bg})` } : {}) } as Record<string, string | number>;
+  return (
+    <div class={`shell ch${ch} sc-${scene} ${bg ? 'has-bg' : ''}`} style={style}>
+      <Corridor key={step ?? scene} bg={bg} cls={step ? 'walk' : ''} />
       <div class="frame">{children}</div>
+      {leave.current && (
+        <div class={`leave-layer sc-${leave.current.scene}`} key={leave.current.id}>
+          <Corridor bg={leave.current.bg} cls="walk-out" />
+        </div>
+      )}
     </div>
   );
 }

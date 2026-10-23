@@ -60,12 +60,12 @@ button:focus-visible { outline: 3px solid var(--lantern); outline-offset: 2px; }
 /* Same framing as the title screen: a 2:3 phone-shaped column at full height, blurred copy filling the sides */
 .shell.has-bg { background: #2a1c2e; }
 .shell.has-bg::before { content: ""; position: absolute; inset: -40px; background: var(--bg) center / cover; filter: blur(24px) brightness(.55); }
-.shell.has-bg .corridor {
+.corridor.bgimg {
   left: 50%; right: auto; width: min(100%, calc(100dvh * 2 / 3)); transform: translateX(-50%);
   background: linear-gradient(180deg, rgba(20,12,30,.45) 0%, rgba(20,12,30,0) 14%, rgba(20,12,30,0) 48%, rgba(20,12,30,.55) 72%, rgba(20,12,30,.8) 100%), var(--bg) center 70% / cover;
 }
 .shell.has-bg .frame { max-width: min(480px, calc(100dvh * 2 / 3)); }
-.shell.has-bg .corridor > * { display: none; }
+.corridor.bgimg > * { display: none; }
 @keyframes sway { to { transform: translateY(calc(sin(var(--i) * 1.1rad) * 10px)) rotate(6deg); } }
 
 .frame {
@@ -405,15 +405,25 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .deck-grid .card.big .text { font-size: 12px; }
 .menu { display: flex; flex-direction: column; gap: 10px; width: min(280px, 100%); }
 /* Bright indoor backdrops (bank): dim more so headings and card text read clearly */
-.shell.has-bg.sc-theme .corridor, .shell.has-bg.sc-reward .corridor {
+.sc-theme > .corridor.bgimg, .sc-reward > .corridor.bgimg {
   background: linear-gradient(180deg, rgba(20,12,30,.78) 0%, rgba(20,12,30,.45) 22%, rgba(20,12,30,.3) 55%, rgba(20,12,30,.5) 100%), var(--bg) center 40% / cover;
 }
-.shell.has-bg.sc-shop .corridor {
+.sc-shop > .corridor.bgimg {
   background: linear-gradient(180deg, rgba(20,12,30,.7) 0%, rgba(20,12,30,.25) 20%, rgba(20,12,30,.1) 50%, rgba(20,12,30,.4) 100%), var(--bg) center 40% / cover;
 }
 
 /* Screen change: the camera bobs and pushes forward a little, like taking a few steps */
-.corridor.walk { animation: walk 1s cubic-bezier(.3,.6,.4,1) both; transform-origin: 50% 45%; }
+.corridor.walk { animation: walk 1s var(--walk-delay, 0s) cubic-bezier(.3,.6,.4,1) both; transform-origin: 50% 45%; }
+.leave-layer { position: absolute; inset: 0; z-index: 40; pointer-events: none; }
+.corridor.walk-out { animation: walk-out .85s ease-in both; transform-origin: 50% 45%; }
+@keyframes walk-out {
+  0%   { scale: 1.08; translate: 0 0;    rotate: 0deg;   filter: none; }
+  20%  { translate: 0 -7px; rotate: .7deg; }
+  40%  { translate: 0 5px;  rotate: -.6deg; }
+  60%  { translate: 0 -6px; rotate: .5deg; filter: brightness(.7); }
+  80%  { translate: 0 3px;  rotate: -.2deg; }
+  100% { scale: 1.25; translate: 0 0;   rotate: 0deg;   filter: brightness(0); }
+}
 @keyframes walk {
   0%   { scale: 1;    translate: 0 0;     rotate: 0deg;   filter: brightness(.35) blur(2px); }
   18%  { translate: 0 -7px;  rotate: -.7deg; }
@@ -422,6 +432,6 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
   78%  { translate: 0 3px;   rotate: .2deg; }
   100% { scale: 1.08; translate: 0 0;     rotate: 0deg;   filter: none; }
 }
-.step-in { animation: step-in .5s .25s ease-out both; }
+.step-in { animation: step-in .5s calc(var(--walk-delay, 0s) + .25s) ease-out both; }
 @keyframes step-in { from { opacity: 0; translate: 0 12px; } }
-@media (prefers-reduced-motion: reduce) { .corridor.walk, .step-in { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .corridor.walk, .corridor.walk-out, .step-in { animation: none; } .leave-layer { display: none; } }

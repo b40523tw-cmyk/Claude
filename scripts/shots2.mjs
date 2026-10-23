@@ -13,9 +13,9 @@ for (const [name, st] of Object.entries(states)) {
   await p.reload();
   await p.getByText('上次存檔').click();
   await p.waitForTimeout(500);
-  if (name === 'shop') { await p.screenshot({ path: `${out}/s-shop.png` }); await p.getByText(/^融合/).click(); await p.waitForTimeout(200); await p.screenshot({ path: `${out}/s-fuse.png` }); }
-  else await p.screenshot({ path: `${out}/s-${name}.png` });
-  if (name === 'event') { await p.locator('.choice').first().click(); await p.waitForTimeout(200); await p.screenshot({ path: `${out}/s-event2.png` }); }
+  if (name === 'shop') { await p.waitForTimeout(1900); await p.screenshot({ path: `${out}/s-shop.png` }); await p.getByText(/^融合/).click(); await p.waitForTimeout(200); await p.waitForTimeout(1900); await p.screenshot({ path: `${out}/s-fuse.png` }); }
+  else await p.waitForTimeout(1900); await p.screenshot({ path: `${out}/s-${name}.png` });
+  if (name === 'event') { await p.locator('.choice').first().click(); await p.waitForTimeout(200); await p.waitForTimeout(1900); await p.screenshot({ path: `${out}/s-event2.png` }); }
   await p.close();
 }
 console.log('errors', errs);
