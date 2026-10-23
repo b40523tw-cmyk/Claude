@@ -22,7 +22,7 @@ export function CardView({ card, cost, size = 'hand', selected, disabled, onClic
   return (
     <button
       type="button"
-      class={`card ${size} r-${d.rarity} t-${d.theme} ${selected ? 'sel' : ''} ${disabled ? 'off' : ''}`}
+      class={`card ${size} r-${d.rarity} t-${d.theme} ${selected ? 'sel' : ''} ${disabled ? 'off' : ''} ${up ? 'is-up' : ''} ${card.fused ? 'is-fused' : ''}`}
       onClick={onClick}
       style={style}
       aria-label={`${d.name}，費用 ${shownCost}，${cardText(card.id, up, card.fused)}`}

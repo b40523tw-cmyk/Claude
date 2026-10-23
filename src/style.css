@@ -136,6 +136,13 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .card.big .type { font-size: 12px; }
 .card.big .text { font-size: 13px; padding: 6px 10px 12px; }
 .card.big .cost { width: 32px; height: 32px; font-size: 18px; line-height: 26px; }
+/* Upgraded and fused cards get a halo instead of a different frame image */
+.card.is-up { box-shadow: 0 4px 0 var(--ink), 0 0 0 3px #7fe0b6, 0 0 14px 3px rgba(63,167,125,.75); }
+.card.is-fused { box-shadow: 0 4px 0 var(--ink), 0 0 0 3px #c9a4ff, 0 0 16px 4px rgba(134,86,196,.8); animation: halo 2.4s ease-in-out infinite; }
+.card.is-up.is-fused { box-shadow: 0 4px 0 var(--ink), 0 0 0 3px #ffd86b, 0 0 18px 5px rgba(227,173,50,.85); }
+@keyframes halo { 50% { filter: brightness(1.06); box-shadow: 0 4px 0 var(--ink), 0 0 0 3px #c9a4ff, 0 0 22px 7px rgba(134,86,196,.9); } }
+.card.is-up.is-fused { animation: none; }
+@media (prefers-reduced-motion: reduce) { .card.is-fused { animation: none; } }
 .card.off { filter: saturate(.4) brightness(.9); }
 .card.locked { justify-content: center; background: var(--paper-2); color: var(--ink-soft); }
 .card-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; padding: 6px 0; }
