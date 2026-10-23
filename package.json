@@ -1,0 +1,25 @@
+{
+  "name": "invest-roguelike",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build && node scripts/make-artifact.mjs",
+    "test": "vitest run",
+    "sim": "vitest run tests/sim.test.ts",
+    "shots": "npm run build && vitest run tests/states.test.ts && node scripts/shots.mjs shots && node scripts/shots2.mjs shots"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.6.5",
+    "playwright": "^1.64.1",
+    "typescript": "^7.0.2",
+    "vite": "^6.4.5",
+    "vite-plugin-singlefile": "^2.3.4",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "preact": "^11.0.1"
+  }
+}
