@@ -54,12 +54,13 @@ export interface Powers {
   fomo: number; // FOMO: 1 = active (3x crit)
   fomoTurns: number; // remaining self-damage turns
   frenzy: number; // 牛市狂熱: +crit per crit this turn
-  leverage: number; // 槓桿倍數: +N to combo multipliers
+  leverage: number; // 槓桿倍數: +N damage on every damaging card
   income: number; // 穩定收入: block per turn
   seniority: number; // 年資: +10% shield per turn per stack
   ironBowl: number; // 鐵飯碗: shield gained each turn
   ironBowlHeal: number; // 鐵飯碗: savings healed each turn
   annuity: number; // 年金: interest per turn
+  annuityTurns: number; // 年金: turns left
   compound: number; // 複利
   lifeInsurance: number; // 壽險理賠: heal-to fraction (0 = none / used)
   liquidation: number; // 十倍槓桿 armed this turn: threshold

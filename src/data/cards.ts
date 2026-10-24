@@ -22,7 +22,7 @@ export interface PlayCtx {
   hp(): number;
   draw(n: number): void;
   gainEnergy(n: number): void;
-  /** Combo multiplier N after 槓桿倍數. */
+  /** Combo multiplier N (槓桿倍數 no longer changes it). */
   N(n: number): number;
   clearOneDebuff(): void;
 }
@@ -91,7 +91,7 @@ const defs: CardDef[] = [
   },
   {
     id: 'takeprofit', name: '停利', theme: 'stock', rarity: 'common', type: 'heal', cost: [1, 1], start: true,
-    base: { heal: 5, rm: 1 }, up: { heal: 7, rm: 2 },
+    base: { heal: 3, rm: 1 }, up: { heal: 5, rm: 2 },
     desc: (n) => `回復 ${n.heal} 存款，移除 ${n.rm} 曝險`,
     play: (x, n) => { x.heal(n.heal); x.st.exposure = Math.max(0, x.st.exposure - n.rm); },
   },
@@ -199,7 +199,7 @@ const defs: CardDef[] = [
   // ───────── 衍生性商品 ─────────
   {
     id: 'minitx', name: '小台當沖', theme: 'deriv', rarity: 'common', type: 'combo', cost: [0, 0], start: true,
-    base: { dmg: 2, n: 2 }, up: { dmg: 4, n: 2 }, target: true,
+    base: { dmg: 2, n: 2 }, up: { dmg: 2, n: 3 }, target: true,
     desc: (n) => `造成 ${n.dmg} + 連擊×${n.n} 傷害`,
     play: (x, n) => x.hit(n.dmg + x.st.combo * x.N(n.n)),
   },
@@ -218,8 +218,8 @@ const defs: CardDef[] = [
   {
     id: 'collateral', name: '保證金', theme: 'deriv', rarity: 'common', type: 'defense', cost: [1, 1], start: true,
     base: { block: 5, n: 1 }, up: { block: 8, n: 1 },
-    desc: (n) => `獲得 ${n.block} 護盾，每 1 連擊再 +${n.n} 護盾`,
-    play: (x, n) => x.block(n.block + x.st.combo * x.N(n.n)),
+    desc: (n) => `獲得 ${n.block} 護盾、1 資金，每 1 連擊再 +${n.n} 護盾`,
+    play: (x, n) => { x.block(n.block + x.st.combo * x.N(n.n)); x.gainEnergy(1); },
   },
   {
     id: 'optseller', name: '選擇權賣方', theme: 'deriv', rarity: 'uncommon', type: 'combo', cost: [1, 1], start: true,
@@ -243,7 +243,8 @@ const defs: CardDef[] = [
   {
     id: 'leverage', name: '槓桿倍數', theme: 'deriv', rarity: 'epic', type: 'power', cost: [1, 0], start: false,
     base: {}, up: {},
-    desc: () => `所有「連擊×N」的 N +1`,
+    // Only cards that already deal damage get the +1 (handled in the play context's hit helpers).
+    desc: () => `後續卡牌的傷害都 +1`,
     play: (x) => { x.pw.leverage += 1; },
   },
   {
@@ -364,8 +365,8 @@ const defs: CardDef[] = [
   {
     id: 'annuity', name: '年金', theme: 'safe', rarity: 'uncommon', type: 'power', cost: [2, 2], start: false,
     base: { int: 3 }, up: { int: 5 },
-    desc: (n) => `每回合開始獲得 ${n.int} 利息`,
-    play: (x, n) => { x.pw.annuity += n.int; },
+    desc: (n) => `每回合開始獲得 ${n.int} 利息，持續三回合`,
+    play: (x, n) => { x.pw.annuity = Math.max(x.pw.annuity, n.int); x.pw.annuityTurns = 3; },
   },
   {
     id: 'highdiv', name: '高股息', theme: 'safe', rarity: 'epic', type: 'attack', cost: [1, 1], start: false,

@@ -44,7 +44,7 @@ export function startCombat(G: RunState, kind: FightKind, monsterIds: string[]) 
     energy: 0, turn: 0, block: 0,
     st: { exposure: 0, bull: 0, combo: 0, interest: 0, debt: 0 },
     pw: {
-      dividend: 0, bullMarket: 0, fomo: 0, fomoTurns: 0, frenzy: 0, leverage: 0, income: 0,
+      dividend: 0, bullMarket: 0, fomo: 0, fomoTurns: 0, frenzy: 0, leverage: 0, income: 0, annuityTurns: 0,
       seniority: 0, ironBowl: 0, ironBowlHeal: 0, annuity: 0, compound: 0, lifeInsurance: 0, liquidation: 0,
     },
     tf: newTurnFlags(0),
@@ -104,7 +104,10 @@ export function startPlayerTurn(G: RunState) {
   if (first && has(G, 'vip')) c.st.combo = Math.max(c.st.combo, 3);
 
   // Start-of-turn effects
-  if (c.pw.annuity) c.st.interest += c.pw.annuity;
+  if (c.pw.annuityTurns > 0) {
+    c.st.interest += c.pw.annuity;
+    if (--c.pw.annuityTurns === 0) c.pw.annuity = 0;
+  }
   if (c.st.interest > 0) {
     heal(G, c.st.interest);
     if (!c.pw.compound) c.st.interest--;
@@ -165,6 +168,11 @@ export function incoming(G: RunState, dmg: number) {
 }
 
 function hurtMonster(G: RunState, m: MonsterState, dmg: number, crit: boolean) {
+  // 卡債循環利息 can't be hurt while its 最低應繳 is alive.
+  if (m.id === 'revolving' && G.combat!.monsters.some((x) => x.id === 'minpay' && !x.dead)) {
+    fx(G, m.uid, '先清最低應繳', 'info');
+    return;
+  }
   let left = dmg;
   if (m.block) {
     const b = Math.min(m.block, left);
@@ -310,12 +318,12 @@ export function playCard(G: RunState, idx: number, targetUid?: string): boolean 
     hit(dmg, crit) {
       const t = this.target && !this.target.dead ? this.target : alive(c)[0];
       if (!t) return;
-      strike(t, dmg, crit);
+      strike(t, dmg + c.pw.leverage, crit);
     },
     aoe(dmg, crit) {
-      for (const m of alive(c)) strike(m, dmg, crit);
+      for (const m of alive(c)) strike(m, dmg + c.pw.leverage, crit);
     },
-    randomHit: (dmg) => randomHit(G, dmg),
+    randomHit: (dmg) => randomHit(G, dmg + c.pw.leverage),
     block: (v) => gainBlock(G, v),
     heal: (v) => heal(G, v),
     lose(v) {
@@ -325,7 +333,7 @@ export function playCard(G: RunState, idx: number, targetUid?: string): boolean 
     hp: () => G.hp,
     draw: (v) => drawCards(G, v),
     gainEnergy: (v) => { c.energy = Math.min(ENERGY_MAX, c.energy + v); },
-    N: (v) => v + c.pw.leverage,
+    N: (v) => v,
     clearOneDebuff() {
       if (c.st.debt) c.st.debt = 0;
       else if (c.st.exposure) c.st.exposure = 0;

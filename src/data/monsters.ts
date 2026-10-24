@@ -20,16 +20,16 @@ export interface MonsterDef {
 
 const defs: MonsterDef[] = [
   {
-    id: 'rent', name: '房租上漲', kind: 'normal', chapter: 1, hp: 30, atk: 7, test: '拖太久的牌組',
-    passive: '每 3 回合攻擊力 +2',
+    id: 'rent', name: '房租上漲', kind: 'normal', chapter: 1, hp: 30, atk: 8, test: '拖太久的牌組',
+    passive: '每 2 回合攻擊力 +2',
     lore: '房東說今年只漲一點點。去年也是一點點，前年也是。',
-    next: (m) => ((m.t + 1) % 3 === 0 ? { kind: 'attack', dmg: m.atk + 2, buff: 2 } : { kind: 'attack', dmg: m.atk }),
+    next: (m) => ((m.t + 1) % 2 === 0 ? { kind: 'attack', dmg: m.atk + 2, buff: 2 } : { kind: 'attack', dmg: m.atk }),
   },
   {
-    id: 'phone', name: '新手機上市', kind: 'normal', chapter: 1, hp: 22, atk: 14, test: '沒防禦的牌組',
-    passive: '重擊一次，休息兩回合',
+    id: 'phone', name: '新手機上市', kind: 'normal', chapter: 1, hp: 22, atk: 12, test: '沒防禦的牌組',
+    passive: '重擊一次，休息一回合',
     lore: '你的舊手機沒壞，只是在發表會隔天突然變得很慢。',
-    next: (m) => (m.t % 3 === 0 ? { kind: 'attack', dmg: m.atk } : { kind: 'rest' }),
+    next: (m) => (m.t % 2 === 0 ? { kind: 'attack', dmg: m.atk } : { kind: 'rest' }),
   },
   {
     id: 'card', name: '信用卡帳單', kind: 'normal', chapter: 1, hp: 28, atk: 6, test: '慢熱的牌組',
@@ -38,13 +38,13 @@ const defs: MonsterDef[] = [
     next: (m) => ({ kind: 'attackDebt', dmg: m.atk, debt: 1 }),
   },
   {
-    id: 'sub', name: '訂閱吸血鬼', kind: 'normal', chapter: 1, hp: 24, atk: 5, test: '低輸出的牌組',
+    id: 'sub', name: '訂閱吸血鬼', kind: 'normal', chapter: 1, hp: 24, atk: 6, test: '低輸出的牌組',
     passive: '攻擊時回復自己',
     lore: '你上次打開那個串流平台是三個月前，但它每個月都記得你。',
     next: (m) => ({ kind: 'attackHeal', dmg: m.atk, heal: 2 }),
   },
   {
-    id: 'scam', name: '詐騙電話', kind: 'normal', chapter: 1, hp: 26, atk: 5, test: '虛擬貨幣',
+    id: 'scam', name: '詐騙電話', kind: 'normal', chapter: 1, hp: 26, atk: 8, test: '虛擬貨幣',
     passive: '你每次爆擊，它偷走 3 存款',
     lore: '「您好，這裡是檢察署。」檢察署從來不會在晚上十一點打給你，但它會。',
     next: (m) => ({ kind: 'attack', dmg: m.atk }),
@@ -74,7 +74,7 @@ const defs: MonsterDef[] = [
   },
   {
     id: 'revolving', name: '卡債循環利息', kind: 'boss', chapter: 1, hp: 80, atk: 6, test: '太慢的保守型',
-    passive: '攻擊力每回合 +2；存款低於一半時召喚「最低應繳」',
+    passive: '攻擊力每回合 +2；血量低於一半時召喚「最低應繳」，它活著時 BOSS 不受傷害',
     lore: '年利率 15%。銀行說這叫「循環」，因為你會一直回來。',
     next: (m) => {
       const dmg = Math.max(0, m.atk + 2 * m.t - (m.flags.relief ?? 0));
