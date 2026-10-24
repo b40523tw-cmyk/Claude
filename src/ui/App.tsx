@@ -10,7 +10,7 @@ import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 // Painted backdrops: ch<chapter>-<screen>.jpg, or a shared picture listed in SHARED_BG.
 // Screens without one keep the drawn corridor.
 const backdrops = import.meta.glob('../assets/bg/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
-const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop' };
+const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop', talents: 'classroom' };
 
 type View = 'title' | 'theme' | 'run' | 'codex' | 'help' | 'talents';
 
