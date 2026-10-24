@@ -54,6 +54,12 @@ function playRun(major: MajorTheme, seed: number, meta: Meta) {
         break;
       }
       case 'paths': {
+        // Chapter shape: fight, fight, 學貸, free step, boss — the boss never comes early.
+        const kinds = s.options.map((o) => o.kind);
+        if (G.fight < 2) expect(kinds.every((k) => k === 'normal' || k === 'elite')).toBe(true);
+        if (G.fight === 2) expect(kinds).toEqual(['miniboss']);
+        if (G.fight === 4) expect(kinds).toEqual(['boss']);
+        if (G.fight !== 4) expect(kinds).not.toContain('boss');
         const shop = s.options.find((o) => o.kind === 'shop');
         const opt = shop && G.gold >= 120 ? shop : s.options.find((o) => o.kind !== 'elite') ?? s.options[0];
         choosePath(G, opt);

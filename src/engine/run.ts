@@ -13,8 +13,14 @@ export const START_HP = 70;
  * picks a path (normal / elite / shop / event); a kind = that fight is fixed.
  * A rest stop (full heal, free deck edits) follows every stage.
  */
-export const CHAPTER_LAYOUT: (FightKind | null)[][] = [
-  [null, null, 'miniboss', null, 'boss'],
+/**
+ * Each chapter is 5 steps and every step counts, shops and events included:
+ * two fights (normal or elite), 學貸 mini boss, one free step (fight, shop or event), then the boss.
+ * fight = choose normal/elite; any = normal/elite/shop/event.
+ */
+export type StepKind = 'fight' | 'any' | 'miniboss' | 'boss';
+export const CHAPTER_LAYOUT: StepKind[][] = [
+  ['fight', 'fight', 'miniboss', 'any', 'boss'],
 ];
 export const MIN_DECK = 8;
 export const HEAL_PCT = 0.2;
@@ -74,9 +80,8 @@ export function removeCard(G: RunState, uid: string) {
 
 // ───────────── progression ─────────────
 
-/** Kind of the fight that comes next in this stage, if forced. */
-function forcedFight(G: RunState): FightKind | null {
-  return CHAPTER_LAYOUT[G.stage - 1]?.[G.fight] ?? null;
+function stepKind(G: RunState): StepKind {
+  return CHAPTER_LAYOUT[G.stage - 1]?.[G.fight] ?? 'fight';
 }
 
 export function stageLength(G: RunState) {
@@ -105,23 +110,21 @@ const HINTS: Record<NodeKind, string[]> = {
 };
 
 export function makePaths(G: RunState): PathOption[] {
-  const forced = forcedFight(G);
-  if (forced) {
-    const opts: PathOption[] = [{
-      kind: forced,
-      hint: forced === 'boss' ? '走廊盡頭有一扇很大的門，門縫底下滲出紅色的利息單' : '有什麼東西在前面等你，很久了',
-    }];
-    if (chance(G, 0.5)) opts.push({ kind: 'shop', hint: pick(G, HINTS.shop) });
-    return opts;
+  const step = stepKind(G);
+  if (step === 'boss') return [{ kind: 'boss', hint: '走廊盡頭有一扇很大的門，門縫底下滲出紅色的利息單' }];
+  if (step === 'miniboss') return [{ kind: 'miniboss', hint: '有什麼東西在前面等你，很久了' }];
+  if (step === 'fight') {
+    // First fight of the run is always a normal one; after that, normal vs elite.
+    if (G.stage === 1 && G.fight === 0) return [{ kind: 'normal', hint: hintFor(G, 'normal') }, { kind: 'normal', hint: hintFor(G, 'normal') }];
+    return shuffle(G, [{ kind: 'normal' as const, hint: hintFor(G, 'normal') }, { kind: 'elite' as const, hint: hintFor(G, 'elite') }]);
   }
-  const count = chance(G, 0.2) ? 3 : 2;
-  const early = G.stage === 1 && G.fight < 1;
+  // Free step: up to three of normal / elite / shop / event.
+  const count = chance(G, 0.4) ? 3 : 2;
   const kinds: NodeKind[] = [];
   while (kinds.length < count) {
-    const k = weighted(G, { normal: 45, elite: early ? 0 : 18, shop: 15, event: 22 } as Record<NodeKind, number>);
-    if (kinds.filter((x) => x === k).length < (k === 'normal' ? 2 : 1)) kinds.push(k);
+    const k = weighted(G, { normal: 30, elite: 15, shop: 30, event: 25 } as Record<NodeKind, number>);
+    if (!kinds.includes(k)) kinds.push(k);
   }
-  if (!kinds.some((k) => k === 'normal' || k === 'elite')) kinds[0] = 'normal';
   return kinds.map((k) => ({ kind: k, hint: hintFor(G, k) }));
 }
 
@@ -144,9 +147,10 @@ export function choosePath(G: RunState, opt: PathOption) {
   }
 }
 
-/** After a shop or event, walk on to the stage's fight. */
+/** Leaving a shop or event uses up the step. */
 export function continueAfterExtra(G: RunState) {
-  beginFight(G, forcedFight(G) ?? 'normal');
+  G.fight++;
+  advance(G);
 }
 
 export function beginFight(G: RunState, kind: FightKind) {

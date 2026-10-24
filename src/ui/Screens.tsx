@@ -145,7 +145,7 @@ export function Paths({ G, bump }: { G: RunState; bump: Bump }) {
   return (
     <div class="screen paths">
       <h2>前面有 {opts.length} 條路</h2>
-      <p class="sub">這一段還有 {stageLength(G) - G.fight} 場要打。</p>
+      <p class="sub">{stageLength(G) - G.fight > 1 ? `第 ${G.fight + 1} / ${stageLength(G)} 步，走完 ${stageLength(G)} 步會遇到大 BOSS。` : '最後一步了。'}</p>
       <div class={`doors n${opts.length}`}>
         {opts.map((o, i) => (
           <button type="button" key={i} class={`door ${o.kind === 'boss' || o.kind === 'miniboss' ? 'big' : ''}`} onClick={() => { choosePath(G, o); bump(); }}>
@@ -612,8 +612,8 @@ export function Help({ onClose }: { onClose: () => void }) {
         <li><b>怪物頭上的圖示</b>是它下回合要做的事。🗡️ 後面的數字是它會打你多少。</li>
         <li><b>護盾</b>先擋傷害，同一場戰鬥會一直累積，打完才清除。</li>
         <li><b>打贏後二選一</b>：拿一張新卡，或回復 20% 存款。</li>
-        <li><b>岔路只有氛圍暗示</b>，大約七成準。商店和事件不算在戰鬥場數裡。</li>
-        <li>第 1 章有 5 場戰鬥：第 3 場是小 BOSS，第 5 場是大 BOSS。</li>
+        <li><b>岔路只有氛圍暗示</b>，大約七成準。</li>
+        <li>每章走 5 步：前 2 步是戰鬥，第 3 步是小 BOSS，第 4 步可能是戰鬥、商店或事件，第 5 步一定是大 BOSS。</li>
         <li>每打完一段會回家休息：存款回滿，可以免費移除卡、升級 1 張。</li>
         <li><b>等級與天賦</b>：打贏戰鬥拿經驗（一般 70、菁英 100、小 BOSS 120、大 BOSS 200），每升一級得 1 天賦點。在標題畫面的「天賦」使用，重置免費。</li>
       </ul>
