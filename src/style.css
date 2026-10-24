@@ -126,8 +126,8 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .relic-row span { background: rgba(247, 238, 219, .85); border: 2px solid var(--ink); border-radius: 8px; padding: 0 4px; }
 
 /* ───── cards ───── */
-/* Painted frame per theme (src/assets/cards/frame-<theme>.webp, 280×344): name in the top banner,
-   rules text in the middle, type in the bottom box. Sizes scale with the card via cqw. */
+/* Painted frame per theme (src/assets/cards/frame-<theme>.webp, 280×344): name and type in the middle,
+   rules text in the bottom box (the top banner stays clear for the frame's ornament). Sizes scale with the card via cqw. */
 .card {
   position: relative; display: block; flex: none; aspect-ratio: 280 / 344; container-type: inline-size;
   background: var(--frame-img, none) center / 100% 100% no-repeat, var(--paper);
@@ -148,22 +148,22 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .card .cost.worse { color: #c0261b; }
 .card .cost.better { color: #11764a; }
 .card .name {
-  position: absolute; top: 3.2%; height: 9.6%; left: 19%; right: 19%;
-  display: flex; align-items: center; justify-content: center; white-space: nowrap;
-  font-weight: bold; line-height: 1; font-size: min(12.5cqw, calc(58cqw / var(--n, 4)));
+  position: absolute; top: 20%; height: 30%; left: 10%; right: 10%;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  font-weight: bold; line-height: 1.1; font-size: min(17cqw, calc(76cqw / var(--n, 4)));
+  text-shadow: 0 0 3px rgba(255, 251, 242, .95), 0 0 6px rgba(255, 251, 242, .9), 0 2px 0 rgba(255, 251, 242, .9);
 }
 .card .plus { color: #2f9e6e; margin-left: 1px; }
 .card .fused { font-size: .7em; background: var(--purple); color: #fff; border-radius: 4px; padding: 0 2px; margin-left: 1px; }
-.card .text {
-  position: absolute; left: 11%; right: 11%; top: 16%; bottom: 31%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: max(8.5cqw, min(12cqw, calc(250cqw / var(--len, 17)))); font-weight: bold; line-height: 1.25; padding: 0 2cqw;
-  text-shadow: 0 0 3px rgba(255, 251, 242, .95), 0 0 6px rgba(255, 251, 242, .9);
-}
 .card .type {
-  position: absolute; left: 9%; right: 9%; bottom: 6.5%; height: 20.5%;
-  display: flex; align-items: center; justify-content: center; white-space: nowrap;
-  font-size: 9cqw; font-weight: bold; color: var(--ink-soft);
+  position: absolute; top: 52%; left: 50%; transform: translateX(-50%); white-space: nowrap;
+  font-size: 7.5cqw; font-weight: bold; color: var(--ink-soft); background: rgba(255, 250, 238, .85); border-radius: 999px; padding: .2em .6em;
+}
+.card .text {
+  position: absolute; left: 9%; right: 9%; bottom: 6.5%; min-height: 20.5%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: max(8cqw, min(10cqw, calc(200cqw / var(--len, 17)))); line-height: 1.2; padding: 1.5cqw 2cqw;
+  background: rgba(255, 251, 242, .88); border-radius: 4cqw;
 }
 .card.hand { width: 92px; }
 .card.big { width: 140px; }
