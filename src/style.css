@@ -365,6 +365,7 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .shop-item.sold { opacity: .45; }
 .price { background: var(--paper); border: 2px solid var(--ink); border-radius: 8px; padding: 1px 8px; font-variant-numeric: tabular-nums; }
 .deck-grid { display: flex; flex-wrap: wrap; gap: 14px 10px; justify-content: center; padding: 12px 0; }
+.event-art { display: block; width: min(72%, 300px, 34vh); aspect-ratio: 1; object-fit: contain; margin: 8px auto 0; filter: drop-shadow(3px 4px 0 rgba(0,0,0,.35)); }
 .event-icon { font-size: 64px; margin-top: 16px; filter: drop-shadow(3px 3px 0 var(--ink)); }
 .story {
   background: var(--paper); border: 3px solid var(--ink); border-radius: 14px; padding: 14px 16px; text-align: left;

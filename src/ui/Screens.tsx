@@ -13,6 +13,7 @@ import type { CardInst, MajorTheme, RunState } from '../engine/types';
 import { CardView } from './CardView';
 import { MonsterArt } from './MonsterArt';
 import titleArt from '../assets/title.jpg';
+const eventArt = import.meta.glob('../assets/events/*.webp', { eager: true, import: 'default' }) as Record<string, string>;
 import { PATHS, TALENT, TALENTS, expToNext, spentPoints, talentCost, talentOpen, type TalentPath } from '../data/talents';
 
 type Bump = () => void;
@@ -287,7 +288,9 @@ export function EventScreen({ G, meta, bump }: { G: RunState; meta: Meta; bump: 
   const ev = EVENTS[s.eventId];
   return (
     <div class="screen event">
-      <div class="event-icon" aria-hidden="true">{ev.icon}</div>
+      {eventArt[`../assets/events/${ev.id}.webp`]
+        ? <img class="event-art" src={eventArt[`../assets/events/${ev.id}.webp`]} alt="" />
+        : <div class="event-icon" aria-hidden="true">{ev.icon}</div>}
       <h2>{ev.title}</h2>
       <p class="story">{s.resolved ?? ev.text}</p>
       <div class="actions col">
