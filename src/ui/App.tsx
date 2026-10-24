@@ -11,7 +11,7 @@ import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 // Painted backdrops: ch<chapter>-<screen>.webp, or a shared picture listed in SHARED_BG.
 // Screens without one keep the drawn corridor.
 const backdrops = import.meta.glob('../assets/bg/*.webp', { eager: true, import: 'default' }) as Record<string, string>;
-const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop', talents: 'classroom', gameOver: 'home', chapterClear: 'home', rest: 'home', relic: 'home', codex: 'library', help: 'library' };
+const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop', talents: 'classroom', gameOver: 'home', chapterClear: 'home', rest: 'home', relic: 'home', codex: 'library', help: 'library', event: 'event' };
 
 type View = 'title' | 'theme' | 'run' | 'codex' | 'help' | 'talents';
 
