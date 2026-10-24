@@ -101,8 +101,9 @@ const defs: CardDef[] = [
   },
   {
     id: 'tsmc', name: '台積電跳空', theme: 'stock', rarity: 'uncommon', type: 'attack', cost: [2, 2], start: true,
-    base: { dmg: 22 }, up: { dmg: 28 }, target: true,
-    desc: (n) => `造成 ${n.dmg} 傷害，獲得 2 曝險`,
+    base: { dmg: 23 }, up: { dmg: 28 }, target: true,
+    // Easter egg: 2330 is TSMC's ticker, so the base card reads 23.30 (it deals 23).
+    desc: (n) => `造成 ${n.dmg === 23 ? '23.30' : n.dmg} 傷害，獲得 2 曝險`,
     play: (x, n) => { x.hit(n.dmg); x.st.exposure += 2; },
   },
   {
