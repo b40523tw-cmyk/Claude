@@ -5,7 +5,7 @@
  * Patterns are written one 16th note per token: a note name starts a note, "." holds it, "-" rests.
  * Drums: k kick, s snare, h hat, "." nothing.
  */
-export type TrackName = 'title' | 'combat' | 'boss' | 'shop';
+export type TrackName = 'title' | 'journey' | 'boss' | 'end';
 
 interface Track {
   bpm: number;
@@ -34,8 +34,8 @@ const TRACKS: Record<TrackName, Track> = {
       'F2 . . . D2 . . . Ab2 . . . G2 . . . ',
     drums: '....h.......h...'.repeat(4),
   },
-  // Bills at the door: A minor, bouncing bass.
-  combat: {
+  // On the road (fights, card rewards, shop): A minor, bouncing bass.
+  journey: {
     bpm: 132, leadWave: 'square', leadCut: 2600,
     lead:
       'A4 . . C5 . . E5 . D5 . C5 . B4 . G4 . ' +
@@ -56,20 +56,20 @@ const TRACKS: Record<TrackName, Track> = {
     bass: bounce(['D', 'A', 'Bb', 'A']),
     drums: 'k.hkk.s.k.hkk.ss'.repeat(4),
   },
-  // 興發雜貨店: a jaunty oom-pah.
-  shop: {
-    bpm: 112, leadWave: 'triangle', leadCut: 5000,
+  // Results: slow and bittersweet, win or lose.
+  end: {
+    bpm: 76, leadWave: 'triangle', leadCut: 5000,
     lead:
-      'F5 . A5 . C6 . A5 . Bb5 . G5 . . . - . ' +
-      'E5 . G5 . Bb5 . G5 . A5 . F5 . . . - . ' +
-      'D5 . F5 . A5 . F5 . G5 . E5 . C5 . E5 . ' +
-      'F5 . . . C5 . . . F5 . . . - . . . ',
+      'C5 . . . Eb5 . G5 . F5 . . . Eb5 . D5 . ' +
+      'Eb5 . . . C5 . . . G4 . . . - . . . ' +
+      'Ab4 . C5 . Eb5 . . . D5 . C5 . B4 . D5 . ' +
+      'C5 . . . . . . . - . . . - . . . ',
     bass:
-      'F2 . - . C3 . - . F2 . - . C3 . - . ' +
-      'C3 . - . G2 . - . C3 . - . G2 . - . ' +
-      'Bb2 . - . F2 . - . C3 . - . G2 . - . ' +
-      'F2 . - . C3 . - . F2 . - . - . - . ',
-    drums: 'k...h...k...h...'.repeat(4),
+      'C3 . . . . . . . G2 . . . . . . . ' +
+      'Ab2 . . . . . . . Eb2 . . . . . . . ' +
+      'F2 . . . . . . . G2 . . . . . . . ' +
+      'C3 . . . . . . . G2 . . . C2 . . . ',
+    drums: '................'.repeat(4),
   },
 };
 

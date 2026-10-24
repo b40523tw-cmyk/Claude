@@ -68,7 +68,11 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
 
   // Background music follows the screen.
   const sc = view === 'run' && G ? G.screen.name : view;
-  const track: TrackName = sc === 'combat' ? (G?.combat?.kind === 'boss' ? 'boss' : 'combat') : sc === 'shop' ? 'shop' : 'title';
+  const track: TrackName =
+    sc === 'combat' && G?.combat?.kind === 'boss' ? 'boss'
+    : sc === 'gameOver' || sc === 'chapterClear' ? 'end'
+    : view === 'run' ? 'journey'
+    : 'title';
   useEffect(() => { music.play(track); }, [track]);
 
   // Chapter clear: unlock the theme's achievement cards once.
