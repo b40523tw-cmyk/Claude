@@ -126,35 +126,46 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .relic-row span { background: rgba(247, 238, 219, .85); border: 2px solid var(--ink); border-radius: 8px; padding: 0 4px; }
 
 /* ───── cards ───── */
+/* Painted frame per theme (src/assets/cards/frame-<theme>.webp, 280×344): name in the top banner,
+   art in the middle, rules text in the bottom box. Sizes scale with the card via cqw. */
 .card {
-  position: relative; display: flex; flex-direction: column; align-items: center;
-  background: var(--paper); border: 3px solid var(--ink); border-radius: 12px;
-  padding: 0; text-align: center; box-shadow: 0 4px 0 var(--ink);
-  --frame: var(--gray);
+  position: relative; display: block; flex: none; aspect-ratio: 280 / 344; container-type: inline-size;
+  background: var(--frame-img, none) center / 100% 100% no-repeat, var(--paper);
+  border: 0; border-radius: 6% / 4.9%; padding: 0; text-align: center; color: var(--ink);
+  box-shadow: 0 4px 0 rgba(42, 34, 48, .85);
+  --frame: transparent;
 }
-.card::before { content: ''; position: absolute; inset: 3px; border: 3px solid var(--frame); border-radius: 8px; pointer-events: none; }
+.card::before { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--frame); pointer-events: none; }
 .card.r-uncommon { --frame: var(--steel); }
 .card.r-epic { --frame: var(--purple); }
-.card.r-legendary { --frame: var(--gold); background: #fff3cf; }
+.card.r-legendary { --frame: var(--gold); }
 .card .cost {
-  position: absolute; top: -9px; left: -9px; width: 26px; height: 26px; border-radius: 50%;
-  background: var(--lantern); border: 3px solid var(--ink); font-size: 15px; line-height: 20px; font-weight: bold; z-index: 2;
+  position: absolute; top: -7px; left: -7px; width: 24cqw; height: 24cqw; min-width: 22px; min-height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--lantern); border: 3px solid var(--ink); font-size: max(14px, 14cqw); font-weight: bold; z-index: 2;
 }
 .card .cost.worse { background: var(--red); color: #fff; }
 .card .cost.better { background: #9be0bf; }
-.card .name { margin-top: 9px; font-size: 13px; line-height: 1.15; padding: 0 6px; font-weight: bold; }
-.card .plus { color: var(--mint); margin-left: 1px; }
-.card .fused { font-size: 10px; background: var(--purple); color: #fff; border-radius: 4px; padding: 0 3px; margin-left: 2px; vertical-align: middle; }
-.card .art { font-size: 22px; line-height: 1.2; margin: 2px 0 0; }
-.card .type { font-size: 10px; color: var(--ink-soft); letter-spacing: .05em; }
-.card .text { font-size: 11px; line-height: 1.3; padding: 3px 7px 8px; }
-.card.hand { width: 82px; min-height: 120px; flex: none; }
-.card.big { width: 128px; min-height: 176px; }
-.card.big .name { font-size: 16px; margin-top: 12px; }
-.card.big .art { font-size: 34px; }
-.card.big .type { font-size: 12px; }
-.card.big .text { font-size: 13px; padding: 6px 10px 12px; }
-.card.big .cost { width: 32px; height: 32px; font-size: 18px; line-height: 26px; }
+.card .name {
+  position: absolute; top: 3.2%; height: 9.6%; left: 19%; right: 19%;
+  display: flex; align-items: center; justify-content: center; white-space: nowrap;
+  font-weight: bold; line-height: 1; font-size: min(12.5cqw, calc(58cqw / var(--n, 4)));
+}
+.card .plus { color: #2f9e6e; margin-left: 1px; }
+.card .fused { font-size: .7em; background: var(--purple); color: #fff; border-radius: 4px; padding: 0 2px; margin-left: 1px; }
+.card .art { position: absolute; top: 20%; left: 0; right: 0; font-size: 22cqw; line-height: 1; filter: drop-shadow(0 2px 0 rgba(0,0,0,.18)); }
+.card .type {
+  position: absolute; top: 52%; left: 50%; transform: translateX(-50%); white-space: nowrap;
+  font-size: 7.5cqw; font-weight: bold; color: var(--ink-soft); background: rgba(255, 250, 238, .85); border-radius: 999px; padding: .2em .6em;
+}
+.card .text {
+  position: absolute; left: 9%; right: 9%; bottom: 6.5%; min-height: 20.5%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: max(8cqw, min(10cqw, calc(200cqw / var(--len, 17)))); line-height: 1.2; padding: 1.5cqw 2cqw;
+  background: rgba(255, 251, 242, .88); border-radius: 4cqw;
+}
+.card.hand { width: 92px; }
+.card.big { width: 140px; }
 /* Upgraded and fused cards get a halo instead of a different frame image */
 .card.is-up { box-shadow: 0 4px 0 var(--ink), 0 0 0 3px #7fe0b6, 0 0 14px 3px rgba(63,167,125,.75); }
 .card.is-fused { box-shadow: 0 4px 0 var(--ink), 0 0 0 3px #c9a4ff, 0 0 16px 4px rgba(134,86,196,.8); animation: halo 2.4s ease-in-out infinite; }
@@ -400,15 +411,12 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 
 @media (max-height: 700px) {
   .hand { height: 128px; }
-  .card.hand { min-height: 112px; }
+  .card.hand { width: 86px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition: none !important; }
 }
-.deck-grid .card.big { width: 104px; min-height: 148px; }
-.deck-grid .card.big .name { font-size: 14px; }
-.deck-grid .card.big .art { font-size: 26px; }
-.deck-grid .card.big .text { font-size: 12px; }
+.deck-grid .card.big { width: 108px; }
 .menu { display: flex; flex-direction: column; gap: 10px; width: min(280px, 100%); }
 /* Bright indoor backdrops (bank): dim more so headings and card text read clearly */
 .sc-theme > .corridor.bgimg, .sc-reward > .corridor.bgimg {

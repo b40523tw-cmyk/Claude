@@ -1,6 +1,9 @@
 import { CARDS, RARITY_NAME, THEMES, TYPE_NAME, cardCost, cardText } from '../data/cards';
 import type { CardInst } from '../engine/types';
 
+const frames = import.meta.glob('../assets/cards/frame-*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+const frameFor = (theme: string) => frames[`../assets/cards/frame-${theme}.webp`];
+
 interface Props {
   card: CardInst;
   cost?: number;
@@ -19,13 +22,15 @@ export function CardView({ card, cost, size = 'hand', selected, disabled, onClic
   const base = cardCost(card.id, up);
   const shownCost = cost ?? base;
   const costCls = shownCost > base ? 'worse' : shownCost < base ? 'better' : '';
+  const text = cardText(card.id, up, card.fused);
+  const frame = frameFor(d.theme);
   return (
     <button
       type="button"
       class={`card ${size} r-${d.rarity} t-${d.theme} ${selected ? 'sel' : ''} ${disabled ? 'off' : ''} ${up ? 'is-up' : ''} ${card.fused ? 'is-fused' : ''}`}
       onClick={onClick}
-      style={style}
-      aria-label={`${d.name}，費用 ${shownCost}，${cardText(card.id, up, card.fused)}`}
+      style={{ ...style, '--n': d.name.length + (up ? 1 : 0) + (card.fused ? 1 : 0), '--len': text.length, ...(frame ? { '--frame-img': `url(${frame})` } : {}) }}
+      aria-label={`${d.name}，費用 ${shownCost}，${text}`}
     >
       <span class={`cost ${costCls}`}>{shownCost}</span>
       <span class="name">
@@ -35,7 +40,7 @@ export function CardView({ card, cost, size = 'hand', selected, disabled, onClic
       </span>
       <span class="art" aria-hidden="true">{THEMES[d.theme].icon}</span>
       <span class="type">{TYPE_NAME[d.type]}{size === 'big' && ` · ${RARITY_NAME[d.rarity]}`}</span>
-      <span class="text">{cardText(card.id, up, card.fused)}</span>
+      <span class="text">{text}</span>
     </button>
   );
 }

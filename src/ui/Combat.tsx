@@ -184,7 +184,7 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
   }
 
   const handW = Math.min(window.innerWidth, 480) - 32 - 70; // energy column sits left of the hand
-  const cw = 82;
+  const cw = window.matchMedia('(max-height: 700px)').matches ? 86 : 92; // matches .card.hand in style.css
   const n = c.hand.length;
   const overlap = n > 1 && n * cw > handW ? (handW - cw * n) / (n - 1) : 6;
 
