@@ -217,7 +217,7 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
                 aria-label={`${d.name} 存款 ${m.hp}/${m.maxHp}`}
               >
                 <IntentBadge G={G} it={m.intent} />
-                <MonsterArt id={m.id} size={Math.round((living.length > 2 ? 100 : living.length > 1 ? 130 : 190) * (MONSTERS[m.id].kind === 'boss' ? 1.2 : 1))} pose={m.dead || hit[m.uid] ? 'hurt' : acting[m.uid] ? 'attack' : 'idle'} />
+                <MonsterArt id={m.id} size={Math.round((living.length > 2 ? 100 : living.length > 1 ? 130 : 190) * (MONSTERS[m.id].kind === 'boss' ? 1.4 : 1))} pose={m.dead || hit[m.uid] ? 'hurt' : acting[m.uid] ? 'attack' : 'idle'} />
                 <span class="mname">{d.name}</span>
                 <span class="bar"><span style={{ width: `${(m.hp / m.maxHp) * 100}%` }} /><em>{m.hp}/{m.maxHp}</em></span>
                 {m.block > 0 && <span class="mblock">🛡️{m.block}</span>}
