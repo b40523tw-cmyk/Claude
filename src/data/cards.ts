@@ -18,6 +18,8 @@ export interface PlayCtx {
   heal(n: number): void;
   /** Self-inflicted savings loss; ignores shield and exposure. */
   lose(n: number): void;
+  /** Current savings. */
+  hp(): number;
   draw(n: number): void;
   gainEnergy(n: number): void;
   /** Combo multiplier N after 槓桿倍數. */
@@ -71,19 +73,19 @@ const defs: CardDef[] = [
   // ───────── 股票 ─────────
   {
     id: 'daytrade', name: '當沖', theme: 'stock', rarity: 'common', type: 'attack', cost: [1, 1], start: true,
-    base: { dmg: 10 }, up: { dmg: 14 }, target: true,
+    base: { dmg: 9 }, up: { dmg: 13 }, target: true,
     desc: (n) => `造成 ${n.dmg} 傷害，獲得 1 曝險`,
     play: (x, n) => { x.hit(n.dmg); x.st.exposure += 1; },
   },
   {
     id: 'chase', name: '追高', theme: 'stock', rarity: 'common', type: 'attack', cost: [1, 1], start: true,
-    base: { dmg: 7 }, up: { dmg: 10 }, target: true,
+    base: { dmg: 5 }, up: { dmg: 8 }, target: true,
     desc: (n) => `造成 ${n.dmg} 傷害，獲得 1 多頭`,
     play: (x, n) => { x.hit(n.dmg); x.st.bull += 1; },
   },
   {
     id: 'etf', name: 'ＥＴＦ', theme: 'stock', rarity: 'common', type: 'defense', cost: [0, 0], start: true,
-    base: { block: 6 }, up: { block: 10 },
+    base: { block: 5 }, up: { block: 8 },
     desc: (n) => `獲得 ${n.block} 護盾、1 多頭`,
     play: (x, n) => { x.block(n.block); x.st.bull += 1; },
   },
@@ -100,7 +102,7 @@ const defs: CardDef[] = [
     play: (x, n) => { x.st.bull += n.bull; x.st.exposure += 2; },
   },
   {
-    id: 'tsmc', name: '台積電跳空', theme: 'stock', rarity: 'uncommon', type: 'attack', cost: [2, 2], start: true,
+    id: 'tsmc', name: '台積電跳空', theme: 'stock', rarity: 'uncommon', type: 'attack', cost: [3, 3], start: true,
     base: { dmg: 23 }, up: { dmg: 28 }, target: true,
     // Easter egg: 2330 is TSMC's ticker, so the base card reads 23.30 (it deals 23).
     desc: (n) => `造成 ${n.dmg === 23 ? '23.30' : n.dmg} 傷害，獲得 2 曝險`,
@@ -128,8 +130,8 @@ const defs: CardDef[] = [
   {
     id: 'allin', name: 'All-in', theme: 'stock', rarity: 'legendary', type: 'attack', cost: [3, 3], start: false,
     base: { dmg: 50 }, up: { dmg: 65 }, target: true,
-    desc: (n) => `造成 ${n.dmg} 傷害；護盾歸零，獲得 3 曝險`,
-    play: (x, n) => { x.hit(n.dmg); x.c.block = 0; x.st.exposure += 3; },
+    desc: (n) => `造成 ${n.dmg} 傷害；消耗 50% 存款，獲得 3 曝險`,
+    play: (x, n) => { x.hit(n.dmg); x.lose(Math.floor(x.hp() / 2)); x.st.exposure += 3; },
   },
 
   // ───────── 虛擬貨幣 ─────────
@@ -332,8 +334,8 @@ const defs: CardDef[] = [
   {
     id: 'savingsins', name: '儲蓄險', theme: 'safe', rarity: 'common', type: 'heal', cost: [1, 1], start: true,
     base: { heal: 6 }, up: { heal: 9 }, target: true,
-    desc: (n) => `回復 ${n.heal} 存款，造成 1 傷害`,
-    play: (x, n) => { x.heal(n.heal); x.hit(1); },
+    desc: (n) => `回復 ${n.heal} 存款，造成 2 傷害`,
+    play: (x, n) => { x.heal(n.heal); x.hit(2); },
   },
   {
     id: 'gold', name: '黃金避險', theme: 'safe', rarity: 'common', type: 'defense', cost: [1, 1], start: true,
@@ -355,19 +357,19 @@ const defs: CardDef[] = [
   },
   {
     id: 'medical', name: '醫療險', theme: 'safe', rarity: 'uncommon', type: 'defense', cost: [1, 1], start: true,
-    base: { block: 4 }, up: { block: 7 },
+    base: { block: 5 }, up: { block: 7 },
     desc: (n) => `獲得 ${n.block} 護盾；本回合受到傷害時，回復該傷害的一半`,
     play: (x, n) => { x.block(n.block); x.tf.medInsurance = true; },
   },
   {
     id: 'annuity', name: '年金', theme: 'safe', rarity: 'uncommon', type: 'power', cost: [2, 2], start: false,
-    base: { int: 2 }, up: { int: 3 },
+    base: { int: 3 }, up: { int: 5 },
     desc: (n) => `每回合開始獲得 ${n.int} 利息`,
     play: (x, n) => { x.pw.annuity += n.int; },
   },
   {
     id: 'highdiv', name: '高股息', theme: 'safe', rarity: 'epic', type: 'attack', cost: [1, 1], start: false,
-    base: { cap: 30 }, up: { cap: 45 }, target: true,
+    base: { cap: 45 }, up: { cap: 60 }, target: true,
     desc: (n) => `造成等同本場已回復存款一半的傷害（上限 ${n.cap}）`,
     play: (x, n) => x.hit(Math.min(n.cap, Math.floor(x.c.healed / 2))),
   },
@@ -379,7 +381,7 @@ const defs: CardDef[] = [
   },
   {
     id: 'lifeins', name: '壽險理賠', theme: 'safe', rarity: 'legendary', type: 'power', cost: [2, 2], start: false,
-    base: { to: 0.3 }, up: { to: 0.5 },
+    base: { to: 0.5 }, up: { to: 0.7 },
     desc: (n) => `本場戰鬥第一次存款歸零時，改為回復到 ${pct(n.to)}，並對所有怪物造成 20 傷害`,
     play: (x, n) => { x.pw.lifeInsurance = Math.max(x.pw.lifeInsurance, n.to); },
   },

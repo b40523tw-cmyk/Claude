@@ -322,6 +322,7 @@ export function playCard(G: RunState, idx: number, targetUid?: string): boolean 
       if (this.critted && has(G, 'hdd')) return;
       loseHp(G, v, def.name);
     },
+    hp: () => G.hp,
     draw: (v) => drawCards(G, v),
     gainEnergy: (v) => { c.energy = Math.min(ENERGY_MAX, c.energy + v); },
     N: (v) => v + c.pw.leverage,
