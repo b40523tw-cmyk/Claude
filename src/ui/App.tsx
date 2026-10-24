@@ -8,10 +8,10 @@ import {
 } from './Screens';
 import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 
-// Painted backdrops: ch<chapter>-<screen>.jpg, or a shared picture listed in SHARED_BG.
+// Painted backdrops: ch<chapter>-<screen>.webp, or a shared picture listed in SHARED_BG.
 // Screens without one keep the drawn corridor.
-const backdrops = import.meta.glob('../assets/bg/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
-const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop', talents: 'classroom', gameOver: 'home', chapterClear: 'home', rest: 'home', relic: 'home' };
+const backdrops = import.meta.glob('../assets/bg/*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop', talents: 'classroom', gameOver: 'home', chapterClear: 'home', rest: 'home', relic: 'home', codex: 'library', help: 'library' };
 
 type View = 'title' | 'theme' | 'run' | 'codex' | 'help' | 'talents';
 
@@ -102,8 +102,8 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
   }
   if (view === 'theme') return <Shell scene="theme"><ThemeSelect minorUnlocked={!!meta.talents?.allocation} onPick={start} onBack={() => setView('title')} /></Shell>;
   if (view === 'talents') return <Shell scene="talents"><Talents meta={meta} save={() => { saveMeta(meta); setTick((t) => t + 1); }} onClose={() => setView('title')} /></Shell>;
-  if (view === 'codex') return <Shell><Codex meta={meta} onClose={() => setView('title')} /></Shell>;
-  if (view === 'help') return <Shell><Help onClose={() => setView('title')} /></Shell>;
+  if (view === 'codex') return <Shell scene="codex"><Codex meta={meta} onClose={() => setView('title')} /></Shell>;
+  if (view === 'help') return <Shell scene="help"><Help onClose={() => setView('title')} /></Shell>;
 
   const run = G!;
   const s = run.screen;
@@ -144,7 +144,7 @@ const SAME_AS: Record<string, string> = { paths: 'combat' };
 
 function backdropFor(ch: number, scene: string): string | undefined {
   const sc = SAME_AS[scene] ?? scene;
-  return backdrops[`../assets/bg/ch${ch}-${sc}.jpg`] ?? backdrops[`../assets/bg/${SHARED_BG[sc]}.jpg`];
+  return backdrops[`../assets/bg/ch${ch}-${sc}.webp`] ?? backdrops[`../assets/bg/${SHARED_BG[sc]}.webp`];
 }
 
 function Corridor({ bg, cls = '' }: { bg?: string; cls?: string }) {
