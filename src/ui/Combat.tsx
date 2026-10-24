@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { CARDS, cardText } from '../data/cards';
 import { MONSTERS } from '../data/monsters';
+import { music, type SfxName } from './music';
 import { ENERGY_MAX, alive, canPlay, discardHand, endTurn, handCost, incoming, needsTarget, playCard } from '../engine/combat';
 import type { Fx, Intent, MonsterState, RunState } from '../engine/types';
 import { CardView } from './CardView';
@@ -84,6 +85,15 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
     lastFx.current = G.fxSeq;
     if (!fresh.length) return;
     setFloats((cur) => [...cur, ...fresh.filter((f) => f.kind !== 'act')]);
+    // One sound per kind of thing that happened, staggered so they don't smear together.
+    const sounds = new Set<SfxName>();
+    for (const f of fresh) {
+      if ((f.kind === 'dmg' || f.kind === 'self') && f.target === 'player') sounds.add('hurt');
+      else if (f.kind === 'dmg' || f.kind === 'crit') sounds.add('hit');
+      else if (f.kind === 'heal') sounds.add('heal');
+      else if (f.kind === 'block') sounds.add('block');
+    }
+    [...sounds].forEach((s, k) => timers.current.push(setTimeout(() => music.sfx(s), 90 + k * 110)));
     const hits: Record<string, number> = {};
     const acts: Record<string, number> = {};
     for (const f of fresh) {
@@ -127,14 +137,17 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
       if (!selNeedsTarget) doPlay(i, living[0]?.uid);
       return;
     }
+    music.sfx('click');
     setSel(i);
   }
 
   function doPlay(i: number, target?: string) {
     if (!canPlay(G, i)) {
       setInfo(`資金不夠：這張要 ${handCost(G, i)} 點。`);
+      music.sfx('nope');
       return;
     }
+    music.sfx('play');
     playCard(G, i, target);
     setSel(null);
     bump();

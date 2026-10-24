@@ -6,6 +6,7 @@
  * Drums: k kick, s snare, h hat, "." nothing.
  */
 export type TrackName = 'title' | 'journey' | 'boss' | 'end';
+export type SfxName = 'click' | 'nope' | 'play' | 'hit' | 'hurt' | 'heal' | 'block';
 
 interface Track {
   bpm: number;
@@ -118,6 +119,7 @@ class Music {
       const b = (e.target as Element | null)?.closest?.('button');
       if (!b) return;
       this.unlock();
+      if (b.closest('.hand')) return; // hand cards have their own sounds (select / play)
       this.sfx(b.disabled ? 'nope' : 'click');
     }, { capture: true });
     document.addEventListener('visibilitychange', () => {
@@ -223,30 +225,72 @@ class Music {
     o.stop(end + 0.02);
   }
 
-  /** Short UI sounds, through the same master volume and mute as the music. */
-  sfx(kind: 'click' | 'nope') {
+  /** Sound effects, through the same master volume and mute as the music. */
+  sfx(kind: SfxName) {
     const ctx = this.ctx;
-    if (!ctx || !this.master || this.muted) return;
+    const out = this.master;
+    if (!ctx || !out || this.muted) return;
     const at = ctx.currentTime + 0.005;
+    switch (kind) {
+      case 'click': // bright pop
+        this.sweep(out, 'square', 660, 1320, at, 0.08, 0.1);
+        break;
+      case 'nope': // dull thud
+        this.sweep(out, 'triangle', 180, 110, at, 0.12, 0.18);
+        break;
+      case 'play': // card flick: a swish and a blip
+        this.noiseSweep(out, at, 0.14, 900, 4000, 0.16);
+        this.sweep(out, 'triangle', 520, 880, at + 0.03, 0.08, 0.08);
+        break;
+      case 'hit': // punch landing on a monster
+        this.noiseSweep(out, at, 0.1, 2500, 400, 0.3);
+        this.sweep(out, 'square', 320, 70, at, 0.13, 0.16);
+        break;
+      case 'hurt': // the player gets hit: low crunch, falling
+        this.noiseSweep(out, at, 0.18, 1200, 200, 0.3);
+        this.sweep(out, 'sawtooth', 240, 60, at, 0.28, 0.14);
+        this.sweep(out, 'sawtooth', 247, 62, at, 0.28, 0.1);
+        break;
+      case 'heal': // rising sparkle
+        [1047, 1319, 1568, 2093].forEach((f, i) => this.sweep(out, 'sine', f, f, at + i * 0.06, 0.16, 0.12));
+        break;
+      case 'block': // metal clang
+        this.sweep(out, 'square', 520, 500, at, 0.22, 0.07);
+        this.sweep(out, 'square', 784, 760, at, 0.18, 0.05);
+        this.noiseSweep(out, at, 0.04, 6000, 6000, 0.15);
+        break;
+    }
+  }
+
+  private sweep(dest: AudioNode, wave: OscillatorType, f0: number, f1: number, at: number, len: number, vol: number) {
+    const ctx = this.ctx!;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    if (kind === 'click') {
-      // a bright "pop": quick upward blip
-      o.type = 'square';
-      o.frequency.setValueAtTime(660, at);
-      o.frequency.exponentialRampToValueAtTime(1320, at + 0.05);
-      g.gain.setValueAtTime(0.12, at);
-      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.08);
-    } else {
-      o.type = 'triangle';
-      o.frequency.setValueAtTime(180, at);
-      o.frequency.exponentialRampToValueAtTime(110, at + 0.1);
-      g.gain.setValueAtTime(0.18, at);
-      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.12);
-    }
-    o.connect(g).connect(this.master);
+    o.type = wave;
+    o.frequency.setValueAtTime(f0, at);
+    if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, at + len);
+    g.gain.setValueAtTime(vol, at);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + len);
+    o.connect(g).connect(dest);
     o.start(at);
-    o.stop(at + 0.15);
+    o.stop(at + len + 0.02);
+  }
+
+  private noiseSweep(dest: AudioNode, at: number, len: number, f0: number, f1: number, vol: number) {
+    const ctx = this.ctx!;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.Q.value = 1.2;
+    f.frequency.setValueAtTime(f0, at);
+    if (f1 !== f0) f.frequency.exponentialRampToValueAtTime(f1, at + len);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(vol, at);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + len);
+    src.connect(f).connect(g).connect(dest);
+    src.start(at);
+    src.stop(at + len + 0.02);
   }
 
   private kick(dest: AudioNode, at: number) {
