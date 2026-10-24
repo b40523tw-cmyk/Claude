@@ -625,7 +625,7 @@ export function Help({ onClose }: { onClose: () => void }) {
 export function MuteButton({ wide }: { wide?: boolean }) {
   const [muted, setMuted] = useState(music.muted);
   useEffect(() => music.onChange(() => setMuted(music.muted)), []);
-  const label = muted ? '音樂：關' : '音樂：開';
+  const label = muted ? '聲音：關' : '聲音：開';
   return wide
     ? <button type="button" class="btn" onClick={() => music.toggle()}>{muted ? '🔇' : '🔊'} {label}</button>
     : <button type="button" class="mute-btn" aria-label={label} title={label} onClick={() => music.toggle()}>{muted ? '🔇' : '🔊'}</button>;

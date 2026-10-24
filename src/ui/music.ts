@@ -113,6 +113,13 @@ class Music {
     const unlock = () => { this.unlock(); };
     window.addEventListener('pointerdown', unlock, { once: true });
     window.addEventListener('keydown', unlock, { once: true });
+    // Every button press clicks; a disabled one gives a dull thud.
+    window.addEventListener('pointerdown', (e) => {
+      const b = (e.target as Element | null)?.closest?.('button');
+      if (!b) return;
+      this.unlock();
+      this.sfx(b.disabled ? 'nope' : 'click');
+    }, { capture: true });
     document.addEventListener('visibilitychange', () => {
       if (!this.ctx) return;
       if (document.hidden) void this.ctx.suspend();
@@ -214,6 +221,32 @@ class Music {
     o.connect(g).connect(dest);
     o.start(at);
     o.stop(end + 0.02);
+  }
+
+  /** Short UI sounds, through the same master volume and mute as the music. */
+  sfx(kind: 'click' | 'nope') {
+    const ctx = this.ctx;
+    if (!ctx || !this.master || this.muted) return;
+    const at = ctx.currentTime + 0.005;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    if (kind === 'click') {
+      // a bright "pop": quick upward blip
+      o.type = 'square';
+      o.frequency.setValueAtTime(660, at);
+      o.frequency.exponentialRampToValueAtTime(1320, at + 0.05);
+      g.gain.setValueAtTime(0.12, at);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.08);
+    } else {
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(180, at);
+      o.frequency.exponentialRampToValueAtTime(110, at + 0.1);
+      g.gain.setValueAtTime(0.18, at);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.12);
+    }
+    o.connect(g).connect(this.master);
+    o.start(at);
+    o.stop(at + 0.15);
   }
 
   private kick(dest: AudioNode, at: number) {
