@@ -1,4 +1,5 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import { music } from './music';
 import { ALL_CARDS, CARDS, THEMES, canFuse } from '../data/cards';
 import { EVENTS } from '../data/events';
 import { ALL_MONSTERS, MONSTERS } from '../data/monsters';
@@ -90,6 +91,7 @@ export function Title({ hasSave, onNew, onContinue, onCodex, onTalents, onHelp }
           ))}
         </nav>
       </div>
+      <MuteButton />
       <p class="fine">v0.3 · 第 1 章「社會新鮮人」試玩版</p>
     </div>
   );
@@ -620,6 +622,15 @@ export function Help({ onClose }: { onClose: () => void }) {
   );
 }
 
+export function MuteButton({ wide }: { wide?: boolean }) {
+  const [muted, setMuted] = useState(music.muted);
+  useEffect(() => music.onChange(() => setMuted(music.muted)), []);
+  const label = muted ? '音樂：關' : '音樂：開';
+  return wide
+    ? <button type="button" class="btn" onClick={() => music.toggle()}>{muted ? '🔇' : '🔊'} {label}</button>
+    : <button type="button" class="mute-btn" aria-label={label} title={label} onClick={() => music.toggle()}>{muted ? '🔇' : '🔊'}</button>;
+}
+
 export function Menu({ onResume, onDeck, onSaveQuit, onAbandon }: { onResume: () => void; onDeck: () => void; onSaveQuit: () => void; onAbandon: () => void }) {
   const [confirm, setConfirm] = useState(false);
   return (
@@ -627,6 +638,7 @@ export function Menu({ onResume, onDeck, onSaveQuit, onAbandon }: { onResume: ()
       <div class="menu">
         <button type="button" class="btn primary" onClick={onResume}>回到遊戲</button>
         <button type="button" class="btn" onClick={onDeck}>查看牌組</button>
+        <MuteButton wide />
         <button type="button" class="btn" onClick={onSaveQuit}>存檔並回到主畫面</button>
         {!confirm
           ? <button type="button" class="btn" onClick={() => setConfirm(true)}>放棄這一輪</button>

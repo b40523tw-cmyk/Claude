@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { music, type TrackName } from './music';
 import { finishCombat, newRun, setShopMeta, type Meta } from '../engine/run';
 import type { MajorTheme, RunState } from '../engine/types';
 import { Combat } from './Combat';
@@ -64,6 +65,11 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
     setG(null);
     setView('title');
   }
+
+  // Background music follows the screen.
+  const sc = view === 'run' && G ? G.screen.name : view;
+  const track: TrackName = sc === 'combat' ? (G?.combat?.kind === 'boss' ? 'boss' : 'combat') : sc === 'shop' ? 'shop' : 'title';
+  useEffect(() => { music.play(track); }, [track]);
 
   // Chapter clear: unlock the theme's achievement cards once.
   useEffect(() => {

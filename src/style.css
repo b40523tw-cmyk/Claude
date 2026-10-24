@@ -298,8 +298,8 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 /* 圖鑑 and 天賦 share a row */
 .title-menu { display: grid; grid-template-columns: 1fr 1fr; }
 .tb-start, .tb-save, .tb-help { grid-column: 1 / -1; }
-.tb-codex, .tb-talents { padding: 0 12px; gap: 6px; letter-spacing: .04em; }
-.tb-codex span, .tb-talents span { margin-right: 0; }
+.tb-codex, .tb-talents { padding: 0 10px; gap: 4px; letter-spacing: 0; font-size: clamp(15px, 2dvh, 22px); }
+.tb-codex span, .tb-talents span { margin-right: 0; white-space: nowrap; }
 .tb-help { --bg: #9b6fd6; --fg: #fff; }
 .tb-help svg { color: #2a1a1f; }
 .title-screen .fine { position: absolute; left: 0; right: 0; bottom: max(10px, env(safe-area-inset-bottom)); margin: 0; text-align: center; color: #fff; opacity: .8; font-size: 12px; text-shadow: 0 1px 3px #000; }
@@ -523,3 +523,9 @@ h2 { font-size: 24px; color: var(--on-dark); text-shadow: 2px 2px 0 var(--ink); 
 .ti-cost { flex: 1; font-size: 13px; font-weight: bold; color: #2f7a52; }
 .expbar { height: 10px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; overflow: hidden; margin: 4px 0; }
 .expbar span { display: block; height: 100%; background: #f7c948; }
+.mute-btn {
+  position: absolute; top: max(12px, env(safe-area-inset-top)); right: 12px; z-index: 2; width: 44px; height: 44px;
+  border: 3px solid #2a1a1f; border-radius: 50%; background: #fbf1df; font-size: 20px; line-height: 1; cursor: pointer;
+  box-shadow: 0 3px 0 #2a1a1f;
+}
+.mute-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #2a1a1f; }
