@@ -11,7 +11,7 @@ import { loadMeta, loadRun, saveMeta, saveRun } from './store';
 // Painted backdrops: ch<chapter>-<screen>.jpg, or a shared picture listed in SHARED_BG.
 // Screens without one keep the drawn corridor.
 const backdrops = import.meta.glob('../assets/bg/*.jpg', { eager: true, import: 'default' }) as Record<string, string>;
-const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop', talents: 'classroom', gameOver: 'home', chapterClear: 'home' };
+const SHARED_BG: Record<string, string> = { theme: 'bank', reward: 'bank', shop: 'shop', talents: 'classroom', gameOver: 'home', chapterClear: 'home', rest: 'home' };
 
 type View = 'title' | 'theme' | 'run' | 'codex' | 'help' | 'talents';
 
@@ -70,7 +70,7 @@ export function App({ hot }: { hot?: Partial<Hot> }) {
   const sc = view === 'run' && G ? G.screen.name : view;
   const track: TrackName =
     sc === 'combat' && G?.combat?.kind === 'boss' ? 'boss'
-    : sc === 'gameOver' || sc === 'chapterClear' ? 'end'
+    : sc === 'gameOver' || sc === 'chapterClear' || sc === 'rest' ? 'end'
     : view === 'run' ? 'journey'
     : 'title';
   useEffect(() => { music.play(track); }, [track]);
