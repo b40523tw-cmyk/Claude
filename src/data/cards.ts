@@ -107,15 +107,15 @@ const defs: CardDef[] = [
   },
   {
     id: 'dividend', name: '存股 0050', theme: 'stock', rarity: 'uncommon', type: 'power', cost: [2, 1], start: false,
-    base: { dmg: 4 }, up: { dmg: 4 },
+    base: { dmg: 5 }, up: { dmg: 5 },
     desc: (n) => `每回合開始對隨機怪物造成 ${n.dmg} 傷害`,
     play: (x, n) => { x.pw.dividend += n.dmg; },
   },
   {
-    id: 'bullmarket', name: '多頭市場', theme: 'stock', rarity: 'epic', type: 'power', cost: [1, 0], start: false,
-    base: {}, up: {},
-    desc: () => `每打出一張攻擊牌，獲得 1 多頭`,
-    play: (x) => { x.pw.bullMarket += 1; },
+    id: 'bullmarket', name: '多頭市場', theme: 'stock', rarity: 'epic', type: 'power', cost: [0, 0], start: false,
+    base: { n: 1 }, up: { n: 2 },
+    desc: (n) => `每打出一張攻擊牌，獲得 ${n.n} 多頭`,
+    play: (x, n) => { x.pw.bullMarket += n.n; },
   },
   {
     id: 'earnings', name: '財報驚喜', theme: 'stock', rarity: 'epic', type: 'attack', cost: [2, 2], start: false,
@@ -146,7 +146,7 @@ const defs: CardDef[] = [
   },
   {
     id: 'doge', name: '狗狗幣', theme: 'crypto', rarity: 'common', type: 'attack', cost: [1, 1], start: true,
-    base: { dmg: 3, hits: 2, crit: 0.35, lose: 2 }, up: { dmg: 3, hits: 3, crit: 0.35, lose: 2 }, target: true,
+    base: { dmg: 3, hits: 2, crit: 0.4, lose: 2 }, up: { dmg: 3, hits: 3, crit: 0.4, lose: 2 }, target: true,
     desc: (n) => `造成 ${n.dmg} 傷害 ${n.hits} 次，每次爆擊率 ${pct(n.crit)}；失去 ${n.lose} 存款`,
     play: (x, n) => { for (let i = 0; i < n.hits; i++) x.hit(n.dmg, n.crit); x.lose(n.lose); },
   },
@@ -177,11 +177,11 @@ const defs: CardDef[] = [
   {
     id: 'fomo', name: 'FOMO', theme: 'crypto', rarity: 'epic', type: 'power', cost: [1, 1], start: false,
     base: { turns: 3 }, up: { turns: 4 },
-    desc: (n) => `爆擊倍率變 3 倍；每回合開始失去 3 存款，持續 ${n.turns} 回合`,
+    desc: (n) => `爆擊傷害變 3 倍；每回合開始失去 3 存款，持續 ${n.turns} 回合`,
     play: (x, n) => { x.pw.fomo = 1; x.pw.fomoTurns += n.turns; },
   },
   {
-    id: 'frenzy', name: '牛市狂熱', theme: 'crypto', rarity: 'epic', type: 'power', cost: [2, 1], start: false,
+    id: 'frenzy', name: '牛市狂熱', theme: 'crypto', rarity: 'epic', type: 'power', cost: [1, 0], start: false,
     base: {}, up: {},
     desc: () => `每次爆擊後，本回合爆擊率 +10%（可疊加）`,
     play: (x) => { x.pw.frenzy += 0.1; },
@@ -227,11 +227,11 @@ const defs: CardDef[] = [
   {
     id: 'straddle', name: '跨式策略', theme: 'deriv', rarity: 'uncommon', type: 'attack', cost: [1, 1], start: true,
     base: { n: 2 }, up: { n: 3 },
-    desc: (n) => `對所有怪物造成 連擊×${n.n} 傷害`,
-    play: (x, n) => x.aoe(x.st.combo * x.N(n.n)),
+    desc: (n) => `對所有怪物造成 連擊×${n.n} 傷害，抽 1 張`,
+    play: (x, n) => { x.aoe(x.st.combo * x.N(n.n)); x.draw(1); },
   },
   {
-    id: 'cycle', name: '當沖循環', theme: 'deriv', rarity: 'uncommon', type: 'combo', cost: [1, 1], start: false,
+    id: 'cycle', name: '當沖循環', theme: 'deriv', rarity: 'uncommon', type: 'combo', cost: [2, 2], start: false,
     base: { draw: 2, th: 5 }, up: { draw: 2, th: 4 },
     desc: (n) => `抽 ${n.draw} 張；連擊達 ${n.th} 以上時獲得 1 資金`,
     // energy check happens after combo increments; see combat.afterPlay
@@ -246,8 +246,8 @@ const defs: CardDef[] = [
   {
     id: 'settle', name: '期貨結算日', theme: 'deriv', rarity: 'epic', type: 'attack', cost: [2, 2], start: false,
     base: { n: 5 }, up: { n: 6 }, target: true,
-    desc: (n) => `造成 連擊×${n.n} 傷害，連擊歸零`,
-    play: (x, n) => { x.hit(x.st.combo * x.N(n.n)); x.st.combo = 0; },
+    desc: (n) => `造成 連擊×${n.n} 傷害，連擊歸零，抽 1 張`,
+    play: (x, n) => { x.hit(x.st.combo * x.N(n.n)); x.st.combo = 0; x.draw(1); },
   },
   {
     id: 'x10', name: '十倍槓桿', theme: 'deriv', rarity: 'legendary', type: 'combo', cost: [1, 0], start: false,
@@ -262,7 +262,7 @@ const defs: CardDef[] = [
   // ───────── 腳踏實地 ─────────
   {
     id: 'overtime', name: '加班', theme: 'work', rarity: 'common', type: 'defense', cost: [1, 1], start: true,
-    base: { block: 7 }, up: { block: 10 },
+    base: { block: 8 }, up: { block: 11 },
     desc: (n) => `獲得 ${n.block} 護盾`,
     play: (x, n) => x.block(n.block),
   },
@@ -343,8 +343,8 @@ const defs: CardDef[] = [
   {
     id: 'dca', name: '定期定額', theme: 'safe', rarity: 'common', type: 'combo', cost: [0, 0], start: true,
     base: { heal: 2, n: 1 }, up: { heal: 3, n: 1 },
-    desc: (n) => `回復 ${n.heal} + 連擊 存款`,
-    play: (x, n) => x.heal(n.heal + x.st.combo * x.N(n.n)),
+    desc: (n) => `回復 ${n.heal} + 連擊 存款，抽 1 張`,
+    play: (x, n) => { x.heal(n.heal + x.st.combo * x.N(n.n)); x.draw(1); },
   },
   {
     id: 'stoploss', name: '停損', theme: 'safe', rarity: 'uncommon', type: 'heal', cost: [1, 1], start: true,

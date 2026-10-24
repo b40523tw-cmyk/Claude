@@ -7,7 +7,7 @@ import { startCombat } from './combat';
 import { chance, pick, rand, randInt, shuffle, weighted } from './rng';
 import { tl, type CardInst, type FightKind, type MajorTheme, type NodeKind, type PathOption, type Rarity, type RunState } from './types';
 
-export const START_HP = 70;
+export const START_HP = 100;
 /**
  * Chapter layout: one array per stage, one slot per fight. `null` = the player
  * picks a path (normal / elite / shop / event); a kind = that fight is fixed.

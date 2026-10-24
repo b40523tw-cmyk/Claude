@@ -38,10 +38,10 @@ const defs: MonsterDef[] = [
     next: (m) => ({ kind: 'attackDebt', dmg: m.atk, debt: 1 }),
   },
   {
-    id: 'sub', name: '訂閱吸血鬼', kind: 'normal', chapter: 1, hp: 24, atk: 4, test: '低輸出的牌組',
+    id: 'sub', name: '訂閱吸血鬼', kind: 'normal', chapter: 1, hp: 24, atk: 5, test: '低輸出的牌組',
     passive: '攻擊時回復自己',
     lore: '你上次打開那個串流平台是三個月前，但它每個月都記得你。',
-    next: (m) => ({ kind: 'attackHeal', dmg: m.atk, heal: 4 }),
+    next: (m) => ({ kind: 'attackHeal', dmg: m.atk, heal: 2 }),
   },
   {
     id: 'scam', name: '詐騙電話', kind: 'normal', chapter: 1, hp: 26, atk: 5, test: '虛擬貨幣',
