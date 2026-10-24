@@ -1,4 +1,4 @@
-import { CARDS, RARITY_NAME, THEMES, TYPE_NAME, cardCost, cardText } from '../data/cards';
+import { CARDS, RARITY_NAME, TYPE_NAME, cardCost, cardText } from '../data/cards';
 import type { CardInst } from '../engine/types';
 
 const frames = import.meta.glob('../assets/cards/frame-*.webp', { eager: true, import: 'default' }) as Record<string, string>;
@@ -38,7 +38,6 @@ export function CardView({ card, cost, size = 'hand', selected, disabled, onClic
         {up && <span class="plus">+</span>}
         {card.fused && <span class="fused">融</span>}
       </span>
-      <span class="art" aria-hidden="true">{THEMES[d.theme].icon}</span>
       <span class="type">{TYPE_NAME[d.type]}{size === 'big' && ` · ${RARITY_NAME[d.rarity]}`}</span>
       <span class="text">{text}</span>
     </button>

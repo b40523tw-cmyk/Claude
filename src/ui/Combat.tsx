@@ -250,7 +250,7 @@ export function Combat({ G, bump, onFinish, onDeck }: Props) {
 
       <div class="tray">
         <div class="tray-left">
-          <div class="energy" aria-label={`資金 ${c.energy} / ${ENERGY_MAX}`}><b>{c.energy}</b><small>資金 /{ENERGY_MAX}</small></div>
+          <div class="energy" aria-label={`資金 ${c.energy} / ${ENERGY_MAX}`}><b>{c.energy}</b><small>/{ENERGY_MAX}</small></div>
           <button type="button" class="dumpbtn" disabled={busy || !!c.over || !c.hand.some((h) => !h.stuck)} onClick={doDiscard}>棄光手牌</button>
         </div>
         <div class="hand" style={{ '--ov': `${overlap}px` } as Record<string, string | number>}>
