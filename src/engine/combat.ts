@@ -7,7 +7,7 @@ import { tl, type CardInst, type CombatState, type FightKind, type MonsterState,
 const HAND_DRAW = 5;
 const HAND_MAX = 7;
 /** 資金 carries over between turns: start at 5, +3 per turn, capped at 10. */
-export const ENERGY_START = 10; // TESTING: user asked for 10 while playtesting; design value is 5
+export const ENERGY_START = 5;
 export const ENERGY_REGEN = 3;
 export const ENERGY_MAX = 10;
 

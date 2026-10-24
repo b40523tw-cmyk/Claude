@@ -115,8 +115,9 @@ export function makePaths(G: RunState): PathOption[] {
   if (step === 'miniboss') return [{ kind: 'miniboss', hint: '有什麼東西在前面等你，很久了' }];
   if (step === 'fight') {
     // First fight of the run is always a normal one; after that, normal vs elite.
-    if (G.stage === 1 && G.fight === 0) return [{ kind: 'normal', hint: hintFor(G, 'normal') }, { kind: 'normal', hint: hintFor(G, 'normal') }];
-    return shuffle(G, [{ kind: 'normal' as const, hint: hintFor(G, 'normal') }, { kind: 'elite' as const, hint: hintFor(G, 'elite') }]);
+    const used: string[] = [];
+    if (G.stage === 1 && G.fight === 0) return [{ kind: 'normal', hint: hintFor(G, 'normal', used) }, { kind: 'normal', hint: hintFor(G, 'normal', used) }];
+    return shuffle(G, [{ kind: 'normal' as const, hint: hintFor(G, 'normal', used) }, { kind: 'elite' as const, hint: hintFor(G, 'elite', used) }]);
   }
   // Free step: up to three of normal / elite / shop / event.
   const count = chance(G, 0.4) ? 3 : 2;
@@ -125,13 +126,17 @@ export function makePaths(G: RunState): PathOption[] {
     const k = weighted(G, { normal: 30, elite: 15, shop: 30, event: 25 } as Record<NodeKind, number>);
     if (!kinds.includes(k)) kinds.push(k);
   }
-  return kinds.map((k) => ({ kind: k, hint: hintFor(G, k) }));
+  const used: string[] = [];
+  return kinds.map((k) => ({ kind: k, hint: hintFor(G, k, used) }));
 }
 
-/** About 70% of hints tell the truth. */
-function hintFor(G: RunState, k: NodeKind): string {
+/** About 70% of hints tell the truth. Two doors never read the same line. */
+function hintFor(G: RunState, k: NodeKind, used: string[] = []): string {
   const shown = chance(G, 0.7 + 0.1 * tl(G, 'homework')) ? k : pick(G, (Object.keys(HINTS) as NodeKind[]).filter((x) => x !== k));
-  return pick(G, HINTS[shown]);
+  const fresh = HINTS[shown].filter((h) => !used.includes(h));
+  const line = pick(G, fresh.length ? fresh : HINTS[shown]);
+  used.push(line);
+  return line;
 }
 
 export function choosePath(G: RunState, opt: PathOption) {

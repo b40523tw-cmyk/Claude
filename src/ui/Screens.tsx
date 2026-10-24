@@ -43,7 +43,7 @@ export function TopBar({ G, onDeck, onMenu }: { G: RunState; onDeck: () => void;
     <header class="topbar">
       <div class="hp" aria-label={`存款 ${G.hp}/${G.maxHp}`}>
         <span class="hp-fill" style={{ width: `${pct * 100}%` }} />
-        <span class="hp-text">存款 {G.hp}/{G.maxHp}{G.combat && G.combat.block > 0 ? `　🛡️${G.combat.block}` : ''}</span>
+        <span class="hp-text"><span class="hp-label">存款 </span>{G.hp}/{G.maxHp}{G.combat && G.combat.block > 0 ? `　🛡️${G.combat.block}` : ''}</span>
       </div>
       <span class="gold">🪙 {G.gold}</span>
       <span class="where">第 {G.chapter} 章 <small>{G.fight}/{stageLength(G) || G.fight}</small></span>
@@ -193,8 +193,8 @@ export function Reward({ G, meta, bump }: { G: RunState; meta: Meta; bump: Bump 
             ))}
           </div>
           <div class="actions">
-            <button type="button" class="btn heal" onClick={() => { takeRewardHeal(G); leaveReward(G, meta); bump(); }}>
-              回復 {Math.min(healAmount(G), G.maxHp - G.hp)} 存款
+            <button type="button" class="btn heal" disabled={G.hp >= G.maxHp} onClick={() => { takeRewardHeal(G); leaveReward(G, meta); bump(); }}>
+              {G.hp >= G.maxHp ? '存款已滿' : `回復 ${Math.min(healAmount(G), G.maxHp - G.hp)} 存款`}
             </button>
             <button type="button" class="btn ghost" onClick={() => { skipReward(G); leaveReward(G, meta); bump(); }}>都不要</button>
           </div>
@@ -371,7 +371,8 @@ export function RestScreen({ G, bump }: { G: RunState; bump: Bump }) {
 export function EndScreen({ G, win, unlocked, onDone }: { G: RunState; win: boolean; unlocked: boolean; onDone: () => void }) {
   return (
     <div class={`screen end ${win ? 'win' : 'lose'}`}>
-      <div class="end-art"><MonsterArt id={win ? 'minpay' : 'revolving'} size={140} /></div>
+      {/* Win: the boss lies beaten. Lose: whoever finished you off, mid-swing. */}
+      <div class="end-art"><MonsterArt id={win ? 'revolving' : G.lastMonster ?? 'revolving'} pose={win ? 'hurt' : 'attack'} size={150} /></div>
       <h2>{win ? '第 1 章通關' : '破產了'}</h2>
       <p class="story">
         {win
@@ -379,7 +380,7 @@ export function EndScreen({ G, win, unlocked, onDone }: { G: RunState; win: bool
           : '你的存款歸零了。隔天，銀行寄來一封很有禮貌的信，信封是粉紅色的。'}
       </p>
       <dl class="stats">
-        <div><dt>走到</dt><dd>第 {G.chapter} 章 第 {G.fight + (G.combat ? 1 : 0)} 場</dd></div>
+        <div><dt>走到</dt><dd>{win ? `第 ${G.chapter} 章 全部通過` : `第 ${G.chapter} 章 第 ${G.fight + 1} / ${stageLength(G) || 5} 步`}</dd></div>
         <div><dt>打倒</dt><dd>{G.stats.kills} 隻</dd></div>
         <div><dt>總傷害</dt><dd>{G.stats.damage}</dd></div>
         <div><dt>打出卡牌</dt><dd>{G.stats.cardsPlayed} 張</dd></div>
